@@ -107,6 +107,17 @@ nav.scrolled{border-bottom-color:var(--border2);box-shadow:0 2px 24px rgba(24,22
   padding:0 60px 80px;overflow:hidden;
   background:var(--black);
 }
+.hero-img-bg{
+  position:absolute;inset:0;
+  background:url('/images/hero-bg.png') center/cover no-repeat;
+  opacity:0.38;
+  z-index:0;
+}
+.hero-img-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top, rgba(24,22,20,0.95) 0%, rgba(24,22,20,0.55) 50%, rgba(24,22,20,0.3) 100%);
+  z-index:1;
+}
 
 /* animated grain overlay */
 .hero-grain{
@@ -135,18 +146,18 @@ nav.scrolled{border-bottom-color:var(--border2);box-shadow:0 2px 24px rgba(24,22
   position:absolute;top:120px;right:40px;
   font-family:var(--font-d);font-size:320px;line-height:1;
   color:transparent;-webkit-text-stroke:1px rgba(201,168,76,0.07);
-  pointer-events:none;user-select:none;
+  pointer-events:none;user-select:none;z-index:3;
   animation:fadeIn 1.2s ease 0.5s both;
 }
 .hero-tag{
   position:absolute;top:160px;left:60px;
   font-family:var(--font-m);font-size:10px;letter-spacing:4px;text-transform:uppercase;
-  color:var(--gold-v);display:flex;align-items:center;gap:12px;
+  color:var(--gold-v);display:flex;align-items:center;gap:12px;z-index:3;
   animation:slideRight 0.8s ease 0.3s both;
 }
 .hero-tag::before{content:'';width:40px;height:1px;background:var(--gold-v);}
 
-.hero-content{position:relative;z-index:2;max-width:820px;}
+.hero-content{position:relative;z-index:3;max-width:820px;}
 .hero-headline{
   font-family:var(--font-d);font-size:clamp(72px,10vw,148px);
   line-height:0.9;letter-spacing:2px;color:var(--white);
@@ -188,7 +199,7 @@ nav.scrolled{border-bottom-color:var(--border2);box-shadow:0 2px 24px rgba(24,22
 .btn-ghost:hover{border-color:var(--gold-v);color:var(--gold-v);}
 
 .hero-scroll{
-  position:absolute;bottom:40px;right:60px;
+  position:absolute;bottom:40px;right:60px;z-index:3;
   font-family:var(--font-m);font-size:9px;letter-spacing:3px;text-transform:uppercase;
   color:rgba(250,248,244,0.3);writing-mode:vertical-rl;
   display:flex;align-items:center;gap:10px;
@@ -291,15 +302,14 @@ nav.scrolled{border-bottom-color:var(--border2);box-shadow:0 2px 24px rgba(24,22
   border:1px solid var(--border2);position:relative;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
   box-shadow:var(--shadow-lg);
+  background-image:url('/images/grc-panel.webp');
+  background-size:cover;background-position:center top;
 }
 .about-img-frame::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(201,168,76,0.06),transparent 60%);
+  background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(24,22,20,0.15) 100%);
 }
-.about-img-inner{
-  font-family:var(--font-d);font-size:16px;letter-spacing:6px;
-  text-transform:uppercase;color:var(--muted);text-align:center;
-}
+.about-img-inner{display:none;}
 .about-badge{
   position:absolute;bottom:-20px;left:-20px;
   background:var(--gold);padding:24px 28px;
@@ -370,6 +380,18 @@ nav.scrolled{border-bottom-color:var(--border2);box-shadow:0 2px 24px rgba(24,22
   background:var(--gold);transition:width 0.4s ease;z-index:3;
 }
 .product-card:hover .product-reveal{width:100%;}
+
+/* product cards with real images */
+.product-card.has-img{
+  background-size:cover;background-position:center;
+}
+.product-card.has-img::after{
+  background:linear-gradient(to top,rgba(24,22,20,0.82) 0%,rgba(24,22,20,0.45) 55%,rgba(24,22,20,0.15) 100%);
+}
+.product-card.has-img .product-name{color:#fff;}
+.product-card.has-img .product-sub{color:rgba(250,248,244,0.7);}
+.product-card.has-img .product-card-icon{background:rgba(250,248,244,0.12);border-color:rgba(250,248,244,0.2);color:#fff;}
+.product-card.has-img:hover .product-card-icon{background:var(--gold);border-color:var(--gold);}
 
 /* ── BRANDS ── */
 .brands{
@@ -644,6 +666,8 @@ footer{
 
 <!-- HERO -->
 <section class="hero" id="home">
+  <div class="hero-img-bg"></div>
+  <div class="hero-img-overlay"></div>
   <div class="hero-grain"></div>
   <div id="hero-glow"></div>
 
@@ -729,18 +753,6 @@ footer{
 
   <div class="about-visual reveal right">
     <div class="about-img-frame">
-      <div class="about-img-inner">
-        PT. SPECSA<br>SOLUSI PRATAMA<br>
-        <span style="font-family:var(--font-b);font-size:12px;color:var(--muted);letter-spacing:2px;margin-top:16px;display:block;">Tangerang Selatan, Banten</span>
-      </div>
-      <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.12" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#B8922A" stroke-width="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)"/>
-      </svg>
     </div>
     <div class="about-badge">
       <div class="about-badge-num">SA</div>
@@ -762,7 +774,7 @@ footer{
   </div>
 
   <div class="product-grid">
-    <div class="product-card reveal scale">
+    <div class="product-card has-img reveal scale" style="background-image:url('/images/grc-panel.webp')">
       <div class="product-card-bg"></div>
       <div class="product-reveal"></div>
       <div class="product-card-icon">▣</div>
@@ -772,7 +784,7 @@ footer{
         <div class="product-sub">Glass Reinforced Cement Board</div>
       </div>
     </div>
-    <div class="product-card reveal scale reveal-delay-1">
+    <div class="product-card has-img reveal scale reveal-delay-1" style="background-image:url('/images/wallspan-facade.webp')">
       <div class="product-card-bg"></div>
       <div class="product-reveal"></div>
       <div class="product-card-icon">▦</div>
@@ -782,7 +794,7 @@ footer{
         <div class="product-sub">Dekoratif & CNC Custom</div>
       </div>
     </div>
-    <div class="product-card reveal scale reveal-delay-2">
+    <div class="product-card has-img reveal scale reveal-delay-2" style="background-image:url('/images/bitmix-waterproof.webp')">
       <div class="product-card-bg"></div>
       <div class="product-reveal"></div>
       <div class="product-card-icon">◈</div>
@@ -792,7 +804,7 @@ footer{
         <div class="product-sub">Membrane Bitumen Anti Bocor</div>
       </div>
     </div>
-    <div class="product-card reveal scale reveal-delay-3">
+    <div class="product-card has-img reveal scale reveal-delay-3" style="background-image:url('/images/tensile-membrane.webp')">
       <div class="product-card-bg"></div>
       <div class="product-reveal"></div>
       <div class="product-card-icon">⬡</div>
@@ -802,7 +814,7 @@ footer{
         <div class="product-sub">Agtex · Sioen · Serge Ferrari · Heytex</div>
       </div>
     </div>
-    <div class="product-card reveal scale reveal-delay-4">
+    <div class="product-card has-img reveal scale reveal-delay-4" style="background-image:url('/images/wallspan-facade.webp');background-position:right center;">
       <div class="product-card-bg"></div>
       <div class="product-reveal"></div>
       <div class="product-card-icon">▪</div>
@@ -812,7 +824,7 @@ footer{
         <div class="product-sub">Perforated Fasad Metal / GKD</div>
       </div>
     </div>
-    <div class="product-card reveal scale reveal-delay-5">
+    <div class="product-card has-img reveal scale reveal-delay-5" style="background-image:url('/images/tegola-roofing.jpg')">
       <div class="product-card-bg"></div>
       <div class="product-reveal"></div>
       <div class="product-card-icon">◧</div>
