@@ -13,7 +13,7 @@ const projects = [
     delay: "0.05s",
   },
   {
-    img: null,
+    img: "/images/project-ifc.png",
     alt: "International Finance Center",
     tag: "GKD Metal Mesh",
     title: "International Finance Center",
@@ -21,7 +21,7 @@ const projects = [
     delay: "0.15s",
   },
   {
-    img: null,
+    img: "/images/project-unj.png",
     alt: "Universitas Negeri Jakarta",
     tag: "Perforated Fasad",
     title: "Universitas Negeri Jakarta",
@@ -29,7 +29,7 @@ const projects = [
     delay: "0.25s",
   },
   {
-    img: null,
+    img: "/images/project-bkk.png",
     alt: "Bina Karsa Office Kuningan",
     tag: "Fasad Membrane",
     title: "Bina Karsa Office Kuningan",
@@ -82,29 +82,15 @@ export default function Portfolio() {
                 aspectRatio: "3/4",
               }}
             >
-              <div className="absolute inset-0 img-wrap dark">
-                {p.img ? (
-                  <Image
-                    src={p.img}
-                    alt={p.alt}
-                    fill
-                    className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      className="w-12 h-12 text-white/20"
-                    >
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                      <circle cx="12" cy="13" r="4" />
-                    </svg>
-                  </div>
-                )}
+              <div className="absolute inset-0">
+                <Image
+                  src={p.img}
+                  alt={p.alt}
+                  fill
+                  loading="lazy"
+                  className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                />
               </div>
 
               <div

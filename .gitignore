@@ -37,6 +37,5 @@ next-env.d.ts
 
 # project-specific
 .claude/
-images/
-Specsa\ Website\ _Standalone_.html
-"Specsa Website _Standalone_.html"
+/images/
+Specsa Website _Standalone_.html
