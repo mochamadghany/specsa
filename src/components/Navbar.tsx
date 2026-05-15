@@ -2,14 +2,31 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { products } from "@/lib/products";
 
 const links = [
   { href: "#tentang", label: "Tentang" },
-  { href: "#produk", label: "Produk" },
+  { href: "#produk", label: "Produk", hasProducts: true },
   { href: "#layanan", label: "Layanan" },
   { href: "#proyek", label: "Proyek" },
   { href: "#kontak", label: "Kontak" },
 ];
+
+function ChevronDown() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -41,7 +58,6 @@ export default function Navbar() {
         style={{ borderColor: "var(--border)" }}
       >
         <div className="max-w-container mx-auto px-8 flex items-center justify-between h-[76px]">
-          {/* Brand */}
           <a href="#" className="flex items-center gap-3">
             <div
               className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-white font-bold text-[14px] tracking-wider shadow-[0_4px_12px_rgba(155,117,53,0.3)]"
@@ -63,22 +79,47 @@ export default function Navbar() {
             </div>
           </a>
 
-          {/* Desktop links */}
           <ul className="hidden lg:flex gap-7 items-center">
             {links.map((l) => (
-              <li key={l.href}>
+              <li key={l.href} className={l.hasProducts ? "relative group" : ""}>
                 <a
                   href={l.href}
-                  className="text-sm text-text-dark relative py-1.5 transition-colors duration-200 hover:text-gold group"
+                  className="text-sm text-text-dark relative py-1.5 transition-colors duration-200 hover:text-gold group/nav inline-flex items-center gap-1.5"
                 >
                   {l.label}
-                  <span className="absolute left-0 bottom-0 w-0 h-px bg-gold transition-all duration-[250ms] group-hover:w-full" />
+                  {l.hasProducts ? <ChevronDown /> : null}
+                  <span className="absolute left-0 bottom-0 w-0 h-px bg-gold transition-all duration-[250ms] group-hover/nav:w-full" />
                 </a>
+                {l.hasProducts ? (
+                  <div className="invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 focus-within:visible focus-within:opacity-100 focus-within:translate-y-0 absolute left-1/2 top-full w-[280px] -translate-x-1/2 pt-4 transition-all duration-200">
+                    <div className="rounded-[8px] border bg-white p-2 shadow-lg" style={{ borderColor: "var(--border)" }}>
+                      <a
+                        href="#produk"
+                        className="block rounded-md px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-gold hover:bg-bg-soft"
+                      >
+                        Semua Produk
+                      </a>
+                      {products.map((product) => (
+                        <a
+                          key={product.id}
+                          href={`#product-${product.id}`}
+                          className="block rounded-md px-3 py-2.5 transition-colors hover:bg-bg-soft"
+                        >
+                          <span className="block text-[13px] font-semibold text-text-dark">
+                            {product.name}
+                          </span>
+                          <span className="block text-[11px] text-text-muted">
+                            {product.badge}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
 
-          {/* CTA */}
           <div className="flex items-center gap-3">
             <a
               href="#kontak"
@@ -108,7 +149,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Panel */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -120,7 +160,7 @@ export default function Navbar() {
               onClick={close}
             />
             <motion.aside
-              className="fixed right-0 top-0 bottom-0 z-50 w-[280px] bg-white p-8 flex flex-col gap-1 shadow-lg"
+              className="fixed right-0 top-0 bottom-0 z-50 w-[300px] bg-white p-8 flex flex-col gap-1 shadow-lg overflow-y-auto"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
@@ -145,15 +185,31 @@ export default function Navbar() {
                 </svg>
               </button>
               {links.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  onClick={close}
-                  className="py-3 text-[15px] font-medium text-text-dark border-b transition-colors hover:text-gold"
-                  style={{ borderColor: "var(--border)" }}
-                >
-                  {l.label}
-                </a>
+                <div key={l.href}>
+                  <a
+                    href={l.href}
+                    onClick={close}
+                    className="py-3 text-[15px] font-medium text-text-dark border-b transition-colors hover:text-gold flex items-center justify-between"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    {l.label}
+                    {l.hasProducts ? <ChevronDown /> : null}
+                  </a>
+                  {l.hasProducts ? (
+                    <div className="py-2 pl-3">
+                      {products.map((product) => (
+                        <a
+                          key={product.id}
+                          href={`#product-${product.id}`}
+                          onClick={close}
+                          className="block py-2 text-[13px] text-text-muted hover:text-gold"
+                        >
+                          {product.name}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               ))}
               <a
                 href="#kontak"

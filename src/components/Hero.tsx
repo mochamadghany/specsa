@@ -1,12 +1,51 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import * as THREE from "three";
 import Image from "next/image";
+import { products } from "@/lib/products";
+
+const sliderImages = [
+  { src: "/images/hero.png", alt: "Proyek konstruksi Specsa" },
+  ...products.slice(0, 5).map((product) => ({
+    src: product.img,
+    alt: product.alt,
+  })),
+];
+
+const formatRp = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+type Condition = "standard" | "renovasi" | "cnc";
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [slide, setSlide] = useState(0);
+  const [productId, setProductId] = useState(products[0].id);
+  const [area, setArea] = useState("50");
+  const [waste, setWaste] = useState(Math.round(products[0].wasteFactor * 100));
+  const [condition, setCondition] = useState<Condition>("standard");
+
+  const selectedProduct =
+    products.find((product) => product.id === productId) ?? products[0];
+
+  useEffect(() => {
+    const product = products.find((item) => item.id === productId) ?? products[0];
+    setWaste(Math.round(product.wasteFactor * 100));
+    setCondition("standard");
+  }, [productId]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setSlide((current) => (current + 1) % sliderImages.length);
+    }, 4500);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -19,10 +58,9 @@ export default function Hero() {
     const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
     camera.position.z = 5;
 
-    // Floating particles
     const count = 120;
     const positions = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) {
+    for (let i = 0; i < count * 3; i += 1) {
       positions[i] = (Math.random() - 0.5) * 14;
     }
 
@@ -40,12 +78,9 @@ export default function Hero() {
     const points = new THREE.Points(geo, mat);
     scene.add(points);
 
-    let w = canvas.clientWidth;
-    let h = canvas.clientHeight;
-
     const resize = () => {
-      w = canvas.clientWidth;
-      h = canvas.clientHeight;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -77,6 +112,32 @@ export default function Hero() {
     };
   }, []);
 
+  const calc = useMemo(() => {
+    const parsedArea = Number.parseFloat(area);
+    const cleanArea = Number.isFinite(parsedArea) && parsedArea > 0 ? parsedArea : 0;
+    const conditionMultiplier = {
+      standard: 1,
+      renovasi: 1.1,
+      cnc: 1.2,
+    }[condition];
+    const netUnits = cleanArea / selectedProduct.coverage;
+    const qty = cleanArea
+      ? Math.ceil(netUnits * (1 + waste / 100) * conditionMultiplier)
+      : 0;
+
+    return {
+      cleanArea,
+      netUnits,
+      qty,
+      min: qty * selectedProduct.priceMin,
+      max: qty * selectedProduct.priceMax,
+    };
+  }, [area, condition, selectedProduct, waste]);
+
+  const quoteText = encodeURIComponent(
+    `Halo Specsa, saya butuh ${calc.qty} ${selectedProduct.unit} ${selectedProduct.name} untuk area ${calc.cleanArea}m2. Mohon info harga terbaiknya.`
+  );
+
   const fadeUp = {
     hidden: { opacity: 0, y: 32 },
     show: (i: number) => ({
@@ -99,108 +160,257 @@ export default function Hero() {
 
   return (
     <header className="relative min-h-screen flex flex-col justify-end text-white overflow-hidden bg-[#0e0c09]">
-      {/* Background image */}
       <div className="absolute inset-0 z-0">
-        <Image
-          src="/images/hero.png"
-          alt="Proyek konstruksi"
-          fill
-          priority
-          className="object-cover saturate-95 brightness-[0.85]"
-        />
+        {sliderImages.map((image, index) => (
+          <Image
+            key={image.src}
+            src={image.src}
+            alt={image.alt}
+            fill
+            priority={index === 0}
+            className={[
+              "object-cover saturate-95 brightness-[0.85] transition-opacity duration-1000",
+              slide === index ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+            sizes="100vw"
+          />
+        ))}
       </div>
 
-      {/* Three.js particles overlay */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-[1] w-full h-full pointer-events-none"
       />
 
-      {/* Gradient overlay */}
       <div
         className="absolute inset-0 z-[2]"
         style={{
           background:
-            "linear-gradient(90deg, rgba(14,12,9,0.92) 0%, rgba(14,12,9,0.7) 35%, rgba(14,12,9,0.3) 70%, rgba(14,12,9,0.15) 100%), linear-gradient(180deg, rgba(14,12,9,0) 30%, rgba(14,12,9,0.55) 100%)",
+            "linear-gradient(90deg, rgba(14,12,9,0.92) 0%, rgba(14,12,9,0.78) 38%, rgba(14,12,9,0.42) 72%, rgba(14,12,9,0.22) 100%), linear-gradient(180deg, rgba(14,12,9,0.08) 30%, rgba(14,12,9,0.68) 100%)",
         }}
       />
 
-      {/* Content */}
-      <div className="relative z-[3] max-w-container mx-auto px-8 flex flex-col flex-1 pt-[120px] pb-9">
-        <div className="max-w-[680px] mt-auto mb-16">
-          <motion.div
-            custom={0}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full text-white backdrop-blur-[6px] mb-6"
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full"
+      <div className="relative z-[3] max-w-container mx-auto px-8 flex flex-col flex-1 pt-[120px] pb-9 w-full">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_420px] gap-10 lg:gap-14 items-end mt-auto mb-10 lg:mb-16">
+          <div className="max-w-[690px]">
+            <motion.div
+              custom={0}
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full text-white backdrop-blur-[6px] mb-6"
               style={{
-                background: "var(--gold-light)",
-                boxShadow: "0 0 0 4px rgba(184,147,63,0.2)",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "11px",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
               }}
-            />
-            Building Material Supplier · Tangerang Selatan
-          </motion.div>
-
-          <motion.h1
-            custom={1}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            className="font-bold leading-[1.02] tracking-[-0.025em] text-balance mb-[22px]"
-            style={{ fontSize: "clamp(44px, 6.2vw, 88px)" }}
-          >
-            Supplier Material Bangunan{" "}
-            <em
-              className="not-italic"
-              style={{ color: "var(--gold-light)" }}
             >
-              Terpercaya
-            </em>{" "}
-            untuk Proyek Anda.
-          </motion.h1>
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: "var(--gold-light)",
+                  boxShadow: "0 0 0 4px rgba(184,147,63,0.2)",
+                }}
+              />
+              Building Material Supplier - Tangerang Selatan
+            </motion.div>
 
-          <motion.p
-            custom={2}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            className="text-[17px] text-white/78 max-w-[560px] leading-[1.55]"
-          >
-            Material berkualitas untuk proyek konstruksi, developer, dan industri.
-            Kompetitif, responsif, on-schedule — dari skala toko ritel hingga proyek
-            skala besar.
-          </motion.p>
+            <motion.h1
+              custom={1}
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              className="font-bold leading-[1.02] tracking-[-0.025em] text-balance mb-[22px]"
+              style={{ fontSize: "clamp(42px, 5.8vw, 82px)" }}
+            >
+              Supplier Material Bangunan{" "}
+              <em className="not-italic" style={{ color: "var(--gold-light)" }}>
+                Terpercaya
+              </em>{" "}
+              untuk Proyek Anda.
+            </motion.h1>
+
+            <motion.p
+              custom={2}
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              className="text-[17px] text-white/78 max-w-[560px] leading-[1.55]"
+            >
+              Material berkualitas untuk proyek konstruksi, developer, dan industri.
+              Kompetitif, responsif, on-schedule dari skala toko ritel hingga proyek
+              skala besar.
+            </motion.p>
+
+            <motion.div
+              custom={3}
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              className="flex gap-3.5 mt-8 flex-wrap"
+            >
+              <a href="#produk" className="btn btn-gold">
+                Lihat Produk <span className="arrow">→</span>
+              </a>
+              <a href="#kontak" className="btn btn-outline">
+                Konsultasi Gratis
+              </a>
+            </motion.div>
+          </div>
 
           <motion.div
-            custom={3}
+            custom={4}
             variants={fadeUp}
             initial="hidden"
             animate="show"
-            className="flex gap-3.5 mt-8 flex-wrap"
+            className="rounded-[10px] border border-white/15 bg-[#17130f]/82 p-5 sm:p-6 shadow-lg backdrop-blur-[18px]"
           >
-            <a href="#produk" className="btn btn-gold">
-              Lihat Produk <span className="arrow">→</span>
-            </a>
-            <a href="#kontak" className="btn btn-outline">
-              Konsultasi Gratis
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <span
+                  className="text-[10px] uppercase text-gold-light"
+                  style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.12em" }}
+                >
+                  Kalkulator Harga
+                </span>
+                <h2 className="text-[23px] font-bold tracking-[-0.01em] mt-1">
+                  Estimasi kebutuhan proyek
+                </h2>
+              </div>
+              <div className="text-right text-[11px] text-white/55">
+                Live estimate
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <label className="grid gap-2">
+                <span className="text-[12px] font-semibold text-white/75">
+                  Produk
+                </span>
+                <select
+                  value={productId}
+                  onChange={(event) => setProductId(event.target.value)}
+                  className="h-11 rounded-md border border-white/15 bg-white/10 px-3 text-sm text-white outline-none focus:border-gold-light"
+                >
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id} className="text-text-dark">
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="flex items-center justify-between gap-3 text-[12px] font-semibold text-white/75">
+                  Luas Area Proyek
+                  <span className="font-normal text-white/45">{selectedProduct.calcLabel}</span>
+                </span>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    max="99999"
+                    step="0.1"
+                    value={area}
+                    onChange={(event) => setArea(event.target.value)}
+                    className="h-12 w-full rounded-md border border-white/15 bg-white/10 px-3 pr-12 text-[15px] text-white outline-none focus:border-gold-light"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-white/55">
+                    m2
+                  </span>
+                </div>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="flex items-center justify-between text-[12px] font-semibold text-white/75">
+                  Waste & Cutting
+                  <span className="text-gold-light">{waste}%</span>
+                </span>
+                <input
+                  type="range"
+                  min="5"
+                  max="30"
+                  step="1"
+                  value={waste}
+                  onChange={(event) => setWaste(Number(event.target.value))}
+                  className="accent-gold-light"
+                />
+              </label>
+
+              <div className="grid gap-2">
+                <span className="text-[12px] font-semibold text-white/75">
+                  Kondisi Proyek
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    ["standard", "Standar"],
+                    ["renovasi", "Renovasi +10%"],
+                    ...(selectedProduct.cnc ? [["cnc", "Custom CNC +20%"]] : []),
+                  ].map(([value, label]) => (
+                    <label
+                      key={value}
+                      className={[
+                        "rounded-md border px-3 py-2 text-[12px] transition-colors",
+                        condition === value
+                          ? "border-gold-light bg-gold-light/18 text-white"
+                          : "border-white/15 bg-white/5 text-white/70",
+                      ].join(" ")}
+                    >
+                      <input
+                        type="radio"
+                        value={value}
+                        checked={condition === value}
+                        onChange={() => setCondition(value as Condition)}
+                        className="sr-only"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-[8px] border border-gold/25 bg-black/24 p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-[11px] uppercase text-white/48">Kebutuhan</div>
+                  <div className="mt-1 text-[30px] font-bold leading-none text-white">
+                    {calc.qty.toLocaleString("id-ID")}
+                  </div>
+                  <div className="mt-1 text-[12px] text-white/58">
+                    {selectedProduct.unit}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] uppercase text-white/48">Estimasi Harga</div>
+                  <div className="mt-1 text-[16px] font-bold text-gold-light">
+                    {formatRp(calc.min)}
+                  </div>
+                  <div className="text-[12px] text-white/58">s.d. {formatRp(calc.max)}</div>
+                </div>
+              </div>
+              <div className="mt-4 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-white/55">
+                Kebutuhan bersih {calc.netUnits.toFixed(2)} {selectedProduct.unit},
+                termasuk {waste}% waste & cutting. Harga aktual menyesuaikan
+                spesifikasi, volume, dan stok.
+              </div>
+            </div>
+
+            <a
+              href={`https://wa.me/6281210511526?text=${quoteText}`}
+              target="_blank"
+              rel="noopener"
+              className="btn btn-gold mt-5 w-full justify-center"
+            >
+              Minta Penawaran untuk Jumlah Ini <span className="arrow">→</span>
             </a>
           </motion.div>
         </div>
       </div>
 
-      {/* Stats bar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
