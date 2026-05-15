@@ -98,23 +98,23 @@ export default function Why() {
           <h2 className="h-display center mt-4">Mengapa Memilih Specsa?</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
           {cards.map((c) => (
             <article
               key={c.title}
-              className={`reveal ${c.delay} p-8 rounded-[10px] border transition-all duration-300 hover:-translate-y-1 hover:border-gold hover:shadow-md bg-card-bg`}
+              className={`reveal ${c.delay} p-4 sm:p-8 rounded-[10px] border transition-all duration-300 hover:-translate-y-1 hover:border-gold hover:shadow-md bg-card-bg`}
               style={{ borderColor: "var(--border)" }}
             >
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-5"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mb-4 sm:mb-5"
                 style={{ background: "rgba(155,117,53,0.1)" }}
               >
                 <span className="w-5 h-5 text-gold [&>svg]:w-full [&>svg]:h-full [&>svg]:stroke-[1.6]" style={{ color: "var(--gold)" }}>
                   {c.icon}
                 </span>
               </div>
-              <h4 className="font-semibold text-[16px] mb-2">{c.title}</h4>
-              <p className="text-[14px] text-text-muted leading-relaxed">{c.desc}</p>
+              <h4 className="font-semibold text-[14px] sm:text-[16px] mb-2">{c.title}</h4>
+              <p className="text-[12px] sm:text-[14px] text-text-muted leading-relaxed">{c.desc}</p>
             </article>
           ))}
         </div>

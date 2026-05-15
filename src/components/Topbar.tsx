@@ -3,7 +3,7 @@
 export default function Topbar() {
   return (
     <div
-      className="bg-bg-dark text-white/55 font-mono text-[10px] tracking-[0.08em] uppercase"
+      className="hidden md:block bg-bg-dark text-white/55 font-mono text-[10px] tracking-[0.08em] uppercase"
       style={{ fontFamily: "var(--font-mono)" }}
     >
       <div className="max-w-container mx-auto px-8 flex items-center justify-between min-h-[36px] py-2.5 gap-6 flex-wrap">

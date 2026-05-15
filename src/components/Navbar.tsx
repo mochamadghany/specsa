@@ -64,7 +64,7 @@ export default function Navbar() {
             >
               SP
             </div>
-            <div className="font-semibold text-[15px] tracking-[-0.005em] text-text-dark">
+            <div className="hidden sm:block font-semibold text-[15px] tracking-[-0.005em] text-text-dark">
               Specsa Solusi Pratama
               <small
                 className="block text-[9px] font-normal text-text-muted tracking-[0.12em] uppercase mt-0.5"

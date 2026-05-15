@@ -56,12 +56,20 @@ export default function Products() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0">
           {products.map((p, i) => (
             <article
               id={`product-${p.id}`}
               key={p.name}
-              className="reveal bg-card-bg rounded-[10px] overflow-hidden border border-transparent transition-all duration-300 hover:-translate-y-1 hover:border-gold hover:shadow-md flex flex-col shadow-sm group scroll-mt-28"
+              role="link"
+              tabIndex={0}
+              onClick={() => {
+                window.location.href = `/produk/${p.id}`;
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") window.location.href = `/produk/${p.id}`;
+              }}
+              className="reveal bg-card-bg rounded-[10px] overflow-hidden border border-transparent transition-all duration-300 hover:-translate-y-1 hover:border-gold hover:shadow-md flex flex-col shadow-sm group scroll-mt-28 snap-start min-w-[82%] sm:min-w-[46%] md:min-w-0"
               style={{ transitionDelay: `${(i % 3) * 0.1}s` }}
             >
               <div
@@ -98,6 +106,9 @@ export default function Products() {
                 </p>
                 <a
                   href="#kontak"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                  }}
                   className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold mt-2 hover:text-gold-light transition-colors"
                 >
                   Minta Penawaran <ArrowIcon />

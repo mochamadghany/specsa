@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Space_Mono } from "next/font/google";
+import FloatingActions from "@/components/FloatingActions";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -40,7 +41,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${jakarta.variable} ${spaceMono.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <FloatingActions />
+      </body>
     </html>
   );
 }

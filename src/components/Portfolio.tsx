@@ -71,11 +71,11 @@ export default function Portfolio() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:pb-0">
           {projects.map((p) => (
             <article
               key={p.title}
-              className="reveal relative rounded-[10px] overflow-hidden group cursor-default"
+              className="reveal relative rounded-[10px] overflow-hidden group cursor-default snap-start min-w-[78%] sm:min-w-0"
               style={{
                 background: "var(--bg-dark)",
                 transitionDelay: p.delay,

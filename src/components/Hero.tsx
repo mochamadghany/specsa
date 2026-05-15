@@ -152,7 +152,7 @@ export default function Hero() {
   ];
 
   return (
-    <header className="relative min-h-screen flex flex-col justify-end text-white overflow-hidden bg-[#0e0c09]">
+    <header className="relative min-h-[calc(100svh-76px)] flex flex-col justify-end text-white overflow-hidden bg-[#0e0c09]">
       <div className="absolute inset-0 z-0">
         {heroSliderImages.map((image, index) => (
           <Image
@@ -179,19 +179,19 @@ export default function Hero() {
         className="absolute inset-0 z-[2]"
         style={{
           background:
-            "linear-gradient(90deg, rgba(14,12,9,0.92) 0%, rgba(14,12,9,0.78) 38%, rgba(14,12,9,0.42) 72%, rgba(14,12,9,0.22) 100%), linear-gradient(180deg, rgba(14,12,9,0.08) 30%, rgba(14,12,9,0.68) 100%)",
+            "linear-gradient(90deg, rgba(14,12,9,0.78) 0%, rgba(14,12,9,0.58) 42%, rgba(14,12,9,0.22) 72%, rgba(14,12,9,0.08) 100%), linear-gradient(180deg, rgba(14,12,9,0.02) 30%, rgba(14,12,9,0.48) 100%)",
         }}
       />
 
-      <div className="relative z-[3] max-w-container mx-auto px-8 flex flex-col justify-center flex-1 pt-[120px] pb-12 w-full">
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_420px] gap-10 lg:gap-14 items-center py-10 lg:py-16">
-          <div className="max-w-[690px]">
+      <div className="relative z-[3] max-w-container mx-auto px-6 sm:px-8 flex flex-col justify-center flex-1 pt-8 lg:pt-10 pb-8 w-full">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_420px] gap-7 lg:gap-14 items-center py-4 lg:py-8">
+          <div className="max-w-[690px] lg:-translate-y-8">
             <motion.div
               custom={0}
               variants={fadeUp}
               initial="hidden"
               animate="show"
-              className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full text-white backdrop-blur-[6px] mb-6"
+              className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full text-white backdrop-blur-[6px] mb-4 lg:mb-6"
               style={{
                 background: "rgba(255,255,255,0.08)",
                 border: "1px solid rgba(255,255,255,0.18)",
@@ -216,8 +216,8 @@ export default function Hero() {
               variants={fadeUp}
               initial="hidden"
               animate="show"
-              className="font-bold leading-[1.02] tracking-[-0.025em] text-balance mb-[22px]"
-              style={{ fontSize: "clamp(42px, 5.8vw, 82px)" }}
+              className="font-bold leading-[1.02] tracking-[-0.025em] text-balance mb-4 lg:mb-[22px]"
+              style={{ fontSize: "clamp(34px, 5.4vw, 78px)" }}
             >
               Supplier Material Bangunan{" "}
               <em className="not-italic" style={{ color: "var(--gold-light)" }}>
@@ -231,7 +231,7 @@ export default function Hero() {
               variants={fadeUp}
               initial="hidden"
               animate="show"
-              className="text-[17px] text-white/78 max-w-[560px] leading-[1.55]"
+              className="text-[15px] lg:text-[17px] text-white/82 max-w-[560px] leading-[1.5]"
             >
               Material berkualitas untuk proyek konstruksi, developer, dan industri.
               Kompetitif, responsif, on-schedule dari skala toko ritel hingga proyek
@@ -243,7 +243,7 @@ export default function Hero() {
               variants={fadeUp}
               initial="hidden"
               animate="show"
-              className="flex gap-3.5 mt-8 flex-wrap"
+              className="flex gap-3.5 mt-6 lg:mt-8 flex-wrap"
             >
               <a href="#produk" className="btn btn-gold">
                 Lihat Produk <span className="arrow">→</span>
@@ -259,7 +259,7 @@ export default function Hero() {
             variants={fadeUp}
             initial="hidden"
             animate="show"
-            className="rounded-[10px] border border-white/15 bg-[#17130f]/82 p-5 sm:p-6 shadow-lg backdrop-blur-[18px]"
+            className="rounded-[10px] border border-white/15 bg-[#17130f]/76 p-4 sm:p-5 lg:p-6 shadow-lg backdrop-blur-[18px]"
           >
             <div className="flex items-start justify-between gap-4 mb-5">
               <div>
@@ -408,7 +408,7 @@ export default function Hero() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-[3] backdrop-blur-[12px]"
+        className="relative z-[3] hidden md:block backdrop-blur-[12px]"
         style={{
           background: "rgba(26,24,20,0.55)",
           borderTop: "1px solid rgba(255,255,255,0.08)",
