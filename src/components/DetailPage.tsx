@@ -1,9 +1,10 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { products } from "@/lib/products";
+import { getRandomHeroImage } from "@/lib/hero-images";
 import type { DetailPageContent } from "@/lib/site-content";
 
 type DetailPageProps = {
@@ -30,6 +31,7 @@ function ArrowIcon() {
 export default function DetailPage({ page }: DetailPageProps) {
   const isExternal = page.ctaHref.startsWith("http");
   const CtaTag = isExternal ? "a" : Link;
+  const heroImage = getRandomHeroImage();
 
   return (
     <>
@@ -39,8 +41,8 @@ export default function DetailPage({ page }: DetailPageProps) {
         <section className="relative overflow-hidden bg-bg-dark text-white">
           <div className="absolute inset-0">
             <Image
-              src={page.heroImage}
-              alt={page.title}
+              src={heroImage.src}
+              alt={heroImage.alt}
               fill
               priority
               className="object-cover opacity-45"
@@ -175,3 +177,4 @@ export default function DetailPage({ page }: DetailPageProps) {
     </>
   );
 }
+

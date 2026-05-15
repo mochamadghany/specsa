@@ -5,14 +5,7 @@ import { motion } from "framer-motion";
 import * as THREE from "three";
 import Image from "next/image";
 import { products } from "@/lib/products";
-
-const sliderImages = [
-  { src: "/images/hero.png", alt: "Proyek konstruksi Specsa" },
-  ...products.slice(0, 5).map((product) => ({
-    src: product.img,
-    alt: product.alt,
-  })),
-];
+import { heroSliderImages } from "@/lib/hero-images";
 
 const formatRp = (value: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -42,7 +35,7 @@ export default function Hero() {
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setSlide((current) => (current + 1) % sliderImages.length);
+      setSlide((current) => (current + 1) % heroSliderImages.length);
     }, 4500);
     return () => window.clearInterval(timer);
   }, []);
@@ -161,7 +154,7 @@ export default function Hero() {
   return (
     <header className="relative min-h-screen flex flex-col justify-end text-white overflow-hidden bg-[#0e0c09]">
       <div className="absolute inset-0 z-0">
-        {sliderImages.map((image, index) => (
+        {heroSliderImages.map((image, index) => (
           <Image
             key={image.src}
             src={image.src}
