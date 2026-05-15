@@ -1,0 +1,137 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+
+const projects = [
+  {
+    img: "/images/project-flyover.png",
+    alt: "Fly Over Agung Sedayu",
+    tag: "Fasad Metal",
+    title: "Fly Over Agung Sedayu",
+    desc: "Wallspan GKD metal panel system untuk fasad fly over.",
+    delay: "0.05s",
+  },
+  {
+    img: null,
+    alt: "International Finance Center",
+    tag: "GKD Metal Mesh",
+    title: "International Finance Center",
+    desc: "Premium metal mesh facade — Jakarta CBD.",
+    delay: "0.15s",
+  },
+  {
+    img: null,
+    alt: "Universitas Negeri Jakarta",
+    tag: "Perforated Fasad",
+    title: "Universitas Negeri Jakarta",
+    desc: "Perforated metal facade untuk gedung kampus.",
+    delay: "0.25s",
+  },
+  {
+    img: null,
+    alt: "Bina Karsa Office Kuningan",
+    tag: "Fasad Membrane",
+    title: "Bina Karsa Office Kuningan",
+    desc: "Tensile membrane facade system — Kuningan, Jakarta.",
+    delay: "0.35s",
+  },
+];
+
+export default function Portfolio() {
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (e) => e.forEach((en) => en.isIntersecting && en.target.classList.add("visible")),
+      { threshold: 0.1 }
+    );
+    el.querySelectorAll(".reveal").forEach((r) => obs.observe(r));
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <section
+      className="py-24"
+      id="proyek"
+      ref={ref}
+      style={{ background: "var(--bg-soft)" }}
+    >
+      <div className="max-w-container mx-auto px-8">
+        <div className="flex justify-between items-end gap-12 mb-12 flex-wrap">
+          <div className="reveal">
+            <span className="label">04 — Portfolio</span>
+            <h2 className="h-display mt-4">Proyek yang Kami Dukung.</h2>
+          </div>
+          <p className="max-w-[340px] text-text-muted text-sm leading-relaxed reveal delay-1">
+            Material kami telah digunakan dalam proyek fasad, infrastruktur, dan
+            komersial skala besar di Indonesia.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {projects.map((p) => (
+            <article
+              key={p.title}
+              className="reveal relative rounded-[10px] overflow-hidden group cursor-default"
+              style={{
+                background: "var(--bg-dark)",
+                transitionDelay: p.delay,
+                aspectRatio: "3/4",
+              }}
+            >
+              <div className="absolute inset-0 img-wrap dark">
+                {p.img ? (
+                  <Image
+                    src={p.img}
+                    alt={p.alt}
+                    fill
+                    className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="w-12 h-12 text-white/20"
+                    >
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="absolute inset-0 flex flex-col justify-end p-5"
+                style={{
+                  background:
+                    "linear-gradient(to top, rgba(14,12,9,0.92) 0%, rgba(14,12,9,0.3) 60%, transparent 100%)",
+                }}
+              >
+                <span
+                  className="inline-block self-start text-[10px] uppercase tracking-[0.1em] px-2 py-1 rounded-full mb-2 text-white/80"
+                  style={{
+                    background: "rgba(155,117,53,0.3)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  {p.tag}
+                </span>
+                <h4 className="font-semibold text-white text-[15px] leading-tight mb-1">
+                  {p.title}
+                </h4>
+                <p className="text-[12px] text-white/65 leading-relaxed">{p.desc}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
