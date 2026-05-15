@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { products } from "@/lib/products";
 
@@ -30,18 +30,15 @@ function ChevronDown() {
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const lastY = useRef(0);
 
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled(y > 10);
-      setHidden(y > lastY.current && y > 80);
-      lastY.current = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -51,9 +48,8 @@ export default function Navbar() {
     <>
       <nav
         className={[
-          "sticky top-0 z-50 bg-white/96 border-b backdrop-saturate-180 backdrop-blur-[10px] transition-all duration-300",
+          "sticky top-0 z-50 bg-white/96 border-b backdrop-saturate-180 backdrop-blur-[10px] transition-shadow duration-300",
           scrolled ? "shadow-[0_6px_24px_rgba(26,24,20,0.08)]" : "",
-          hidden ? "-translate-y-full" : "translate-y-0",
         ].join(" ")}
         style={{ borderColor: "var(--border)" }}
       >

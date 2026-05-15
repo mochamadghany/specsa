@@ -183,8 +183,8 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-[3] max-w-container mx-auto px-8 flex flex-col flex-1 pt-[120px] pb-9 w-full">
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_420px] gap-10 lg:gap-14 items-end mt-auto mb-10 lg:mb-16">
+      <div className="relative z-[3] max-w-container mx-auto px-8 flex flex-col justify-center flex-1 pt-[120px] pb-12 w-full">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_420px] gap-10 lg:gap-14 items-center py-10 lg:py-16">
           <div className="max-w-[690px]">
             <motion.div
               custom={0}
