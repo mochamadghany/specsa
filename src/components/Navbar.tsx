@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { products } from "@/lib/products";
 
 const links = [
-  { href: "#tentang", label: "Tentang" },
-  { href: "#produk", label: "Produk", hasProducts: true },
-  { href: "#layanan", label: "Layanan" },
-  { href: "#proyek", label: "Proyek" },
-  { href: "#kontak", label: "Kontak" },
+  { href: "/tentang", label: "Tentang" },
+  { href: "/produk", label: "Produk", hasProducts: true },
+  { href: "/layanan", label: "Layanan" },
+  { href: "/proyek", label: "Proyek" },
+  { href: "/kontak", label: "Kontak" },
 ];
 
 function ChevronDown() {
@@ -58,7 +58,7 @@ export default function Navbar() {
         style={{ borderColor: "var(--border)" }}
       >
         <div className="max-w-container mx-auto px-8 flex items-center justify-between h-[76px]">
-          <a href="#" className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3">
             <div
               className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-white font-bold text-[14px] tracking-wider shadow-[0_4px_12px_rgba(155,117,53,0.3)]"
               style={{
@@ -94,7 +94,7 @@ export default function Navbar() {
                   <div className="invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 focus-within:visible focus-within:opacity-100 focus-within:translate-y-0 absolute left-1/2 top-full w-[280px] -translate-x-1/2 pt-4 transition-all duration-200">
                     <div className="rounded-[8px] border bg-white p-2 shadow-lg" style={{ borderColor: "var(--border)" }}>
                       <a
-                        href="#produk"
+                        href="/produk"
                         className="block rounded-md px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-gold hover:bg-bg-soft"
                       >
                         Semua Produk
@@ -102,7 +102,7 @@ export default function Navbar() {
                       {products.map((product) => (
                         <a
                           key={product.id}
-                          href={`#product-${product.id}`}
+                          href={`/produk#product-${product.id}`}
                           className="block rounded-md px-3 py-2.5 transition-colors hover:bg-bg-soft"
                         >
                           <span className="block text-[13px] font-semibold text-text-dark">
@@ -122,7 +122,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-3">
             <a
-              href="#kontak"
+              href="/kontak"
               className="hidden lg:inline-flex btn btn-gold btn-pill"
             >
               Minta Penawaran <span className="arrow">→</span>
@@ -200,7 +200,7 @@ export default function Navbar() {
                       {products.map((product) => (
                         <a
                           key={product.id}
-                          href={`#product-${product.id}`}
+                          href={`/produk#product-${product.id}`}
                           onClick={close}
                           className="block py-2 text-[13px] text-text-muted hover:text-gold"
                         >
@@ -212,7 +212,7 @@ export default function Navbar() {
                 </div>
               ))}
               <a
-                href="#kontak"
+                href="/kontak"
                 onClick={close}
                 className="btn btn-gold mt-4 justify-center"
               >

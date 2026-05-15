@@ -17,14 +17,14 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PT. Specsa Solusi Pratama — Supplier Material Bangunan Tangerang Selatan",
+  title: "PT. Specsa Solusi Pratama - Supplier Material Bangunan Tangerang Selatan",
   description:
-    "PT. Specsa Solusi Pratama — supplier material bangunan untuk kontraktor, developer, industri & retail di Jabodetabek. GRC, Conwood, Bitmix, Tensile Membrane, Wallspan GKD, Tegola, Gerfloor.",
+    "PT. Specsa Solusi Pratama - supplier material bangunan untuk kontraktor, developer, industri & retail di Jabodetabek. GRC, Conwood, Bitmix, Tensile Membrane, Wallspan GKD, Tegola, Gerfloor.",
   keywords:
     "supplier material bangunan, GRC board, conwood, waterproofing bitmix, tensile membrane, wallspan GKD, genteng bitumen tegola, vinyl gerfloor, kontraktor tangerang, jabodetabek",
   authors: [{ name: "PT. Specsa Solusi Pratama" }],
   openGraph: {
-    title: "PT. Specsa Solusi Pratama — Trusted Building Material Partner",
+    title: "PT. Specsa Solusi Pratama - Trusted Building Material Partner",
     description:
       "Material berkualitas untuk proyek konstruksi, developer, dan industri. Kompetitif, responsif, on-schedule.",
     type: "website",
