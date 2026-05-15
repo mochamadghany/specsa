@@ -14,10 +14,12 @@ export default function CmsLoginPage() {
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/cms", {
+    const res = await fetch("/api/cms/auth", {
+      method: "POST",
       headers: {
-        "x-cms-password": password,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ password }),
     });
 
     if (!res.ok) {
@@ -26,7 +28,6 @@ export default function CmsLoginPage() {
       return;
     }
 
-    window.localStorage.setItem("specsa-cms-password", password);
     router.push("/cms");
   }
 
