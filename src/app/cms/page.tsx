@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { SiteContent } from "@/lib/site-content";
 
 type LoadState = "idle" | "loading" | "ready" | "saving" | "error" | "saved";
@@ -12,6 +13,7 @@ const cmsHelp = [
 ];
 
 export default function CmsPage() {
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [jsonText, setJsonText] = useState("");
   const [state, setState] = useState<LoadState>("idle");
@@ -25,19 +27,31 @@ export default function CmsPage() {
     }
   }, [jsonText]);
 
-  const requestHeaders = {
-    "Content-Type": "application/json",
-    "x-cms-password": password,
-  };
+  function getStoredPassword() {
+    if (typeof window === "undefined") return "";
+    return window.localStorage.getItem("specsa-cms-password") || password;
+  }
 
   async function loadContent() {
+    const activePassword = getStoredPassword();
+    if (!activePassword) {
+      router.push("/cms/login");
+      return;
+    }
+    setPassword(activePassword);
     setState("loading");
     setMessage("");
-    const res = await fetch("/api/cms", { headers: requestHeaders });
+    const res = await fetch("/api/cms", {
+      headers: {
+        "Content-Type": "application/json",
+        "x-cms-password": activePassword,
+      },
+    });
     const data = await res.json();
     if (!res.ok) {
       setState("error");
       setMessage(data.error || "Gagal membuka CMS.");
+      if (res.status === 401) router.push("/cms/login");
       return;
     }
     setJsonText(JSON.stringify(data.content, null, 2));
@@ -45,6 +59,11 @@ export default function CmsPage() {
   }
 
   async function saveContent() {
+    const activePassword = getStoredPassword();
+    if (!activePassword) {
+      router.push("/cms/login");
+      return;
+    }
     if (!parsed) {
       setState("error");
       setMessage("JSON belum valid. Periksa koma, kutip, dan struktur objek.");
@@ -54,13 +73,17 @@ export default function CmsPage() {
     setMessage("");
     const res = await fetch("/api/cms", {
       method: "PUT",
-      headers: requestHeaders,
+      headers: {
+        "Content-Type": "application/json",
+        "x-cms-password": activePassword,
+      },
       body: JSON.stringify(parsed),
     });
     const data = await res.json();
     if (!res.ok) {
       setState("error");
       setMessage(data.error || "Gagal menyimpan konten.");
+      if (res.status === 401) router.push("/cms/login");
       return;
     }
     setJsonText(JSON.stringify(data.content, null, 2));
@@ -98,24 +121,24 @@ export default function CmsPage() {
       <section className="max-w-container mx-auto px-8 py-8">
         <div className="grid lg:grid-cols-[340px_1fr] gap-6 items-start">
           <aside className="rounded-[10px] border bg-card-bg p-5 shadow-sm" style={{ borderColor: "var(--border)" }}>
-            <label className="block text-[13px] font-semibold mb-2">
-              Password CMS
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Masukkan CMS_PASSWORD"
-              className="w-full rounded-md border bg-bg-base px-3 py-2.5 text-sm outline-none focus:border-gold"
-              style={{ borderColor: "var(--border)" }}
-            />
             <button
               type="button"
               onClick={loadContent}
-              disabled={!password || state === "loading"}
+              disabled={state === "loading"}
               className="btn btn-gold mt-4 w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
             >
               {state === "loading" ? "Membuka..." : "Buka Konten"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                window.localStorage.removeItem("specsa-cms-password");
+                router.push("/cms/login");
+              }}
+              className="mt-3 w-full rounded-md border px-4 py-2.5 text-sm font-semibold text-text-muted hover:text-gold"
+              style={{ borderColor: "var(--border)" }}
+            >
+              Logout / Ganti Password
             </button>
 
             <div className="mt-6 border-t pt-5" style={{ borderColor: "var(--border)" }}>
