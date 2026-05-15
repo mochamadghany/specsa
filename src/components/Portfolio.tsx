@@ -82,17 +82,17 @@ export default function Portfolio() {
                 aspectRatio: "3/4",
               }}
             >
-              <div className="absolute inset-0">
-                <Image
-                  src={p.img}
-                  alt={p.alt}
-                  fill
-                  loading="lazy"
-                  className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                />
-              </div>
+              {/* Image sits directly inside the relative article — required by Next.js fill */}
+              <Image
+                src={p.img}
+                alt={p.alt}
+                fill
+                loading="lazy"
+                className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              />
 
+              {/* Gradient overlay + text */}
               <div
                 className="absolute inset-0 flex flex-col justify-end p-5"
                 style={{
