@@ -131,6 +131,12 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+type DeleteEntity = "page" | "product" | "project" | "media";
+
+function isDeleteEntity(value: unknown): value is DeleteEntity {
+  return value === "page" || value === "product" || value === "project" || value === "media";
+}
+
 export async function GET(request: NextRequest) {
   if (!isCmsRequestAuthorized(request)) return unauthorized();
 
@@ -459,6 +465,56 @@ export async function PUT(request: NextRequest) {
     await conn.rollback();
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Save failed" },
+      { status: 500 }
+    );
+  } finally {
+    conn.release();
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!isCmsRequestAuthorized(request)) return unauthorized();
+
+  const body = (await request.json().catch(() => null)) as
+    | { entity?: unknown; id?: unknown }
+    | null;
+  const id = Number(body?.id);
+
+  if (!isDeleteEntity(body?.entity) || !Number.isFinite(id) || id <= 0) {
+    return NextResponse.json({ error: "Invalid delete request" }, { status: 400 });
+  }
+
+  const db = getDbPool();
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    if (body.entity === "page") {
+      await conn.execute("DELETE FROM seo_metadata WHERE entity_type = 'page' AND entity_id = ?", [id]);
+      await conn.execute("DELETE FROM pages WHERE id = ?", [id]);
+    }
+
+    if (body.entity === "product") {
+      await conn.execute("DELETE FROM seo_metadata WHERE entity_type = 'product' AND entity_id = ?", [id]);
+      await conn.execute("DELETE FROM products WHERE id = ?", [id]);
+    }
+
+    if (body.entity === "project") {
+      await conn.execute("DELETE FROM seo_metadata WHERE entity_type = 'project' AND entity_id = ?", [id]);
+      await conn.execute("DELETE FROM projects WHERE id = ?", [id]);
+    }
+
+    if (body.entity === "media") {
+      await conn.execute("DELETE FROM media_assets WHERE id = ?", [id]);
+    }
+
+    await conn.commit();
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    await conn.rollback();
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Delete failed" },
       { status: 500 }
     );
   } finally {

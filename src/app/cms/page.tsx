@@ -124,6 +124,7 @@ type DashboardData = {
 };
 
 type Tab = "overview" | "inquiries" | "pages" | "products" | "projects" | "media" | "settings";
+type DeleteEntity = "page" | "product" | "project" | "media";
 
 const tabs: Array<{ id: Tab; label: string; glyph: string; count?: (data: DashboardData) => number }> = [
   { id: "overview", label: "Dashboard", glyph: "D" },
@@ -142,6 +143,20 @@ const contactStatuses: ContactSubmission["status"][] = [
   "closed",
   "spam",
 ];
+
+const pageSize = 8;
+
+function paginate<T>(items: T[], page: number) {
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const start = (safePage - 1) * pageSize;
+  return {
+    items: items.slice(start, start + pageSize),
+    totalPages,
+    safePage,
+    start,
+  };
+}
 
 function formatMoney(value: string | number | null) {
   const amount = Number(value || 0);
@@ -246,6 +261,67 @@ function StatusBadge({ active, label }: { active: boolean; label: string }) {
   );
 }
 
+function TablePager({
+  page,
+  totalPages,
+  total,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  total: number;
+  onChange: (page: number) => void;
+}) {
+  return (
+    <div className={styles.pagination}>
+      <span>
+        Page {page} / {totalPages} - {total} data
+      </span>
+      <div className={styles.paginationActions}>
+        <button
+          type="button"
+          className={[styles.btn, styles.btnOutline].join(" ")}
+          disabled={page <= 1}
+          onClick={() => onChange(page - 1)}
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          className={[styles.btn, styles.btnOutline].join(" ")}
+          disabled={page >= totalPages}
+          onClick={() => onChange(page + 1)}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SaveActions({
+  saving,
+  disabled,
+  onSave,
+}: {
+  saving: boolean;
+  disabled?: boolean;
+  onSave: () => void;
+}) {
+  return (
+    <div className={styles.saveBar}>
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={saving || disabled}
+        className={[styles.btn, styles.btnGold].join(" ")}
+      >
+        {saving ? "Menyimpan..." : "Simpan Perubahan"}
+      </button>
+    </div>
+  );
+}
+
 export default function CmsPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -255,6 +331,11 @@ export default function CmsPage() {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
+  const [pagesPage, setPagesPage] = useState(1);
+  const [productsPage, setProductsPage] = useState(1);
+  const [projectsPage, setProjectsPage] = useState(1);
+  const [mediaPage, setMediaPage] = useState(1);
+  const [inquiriesPage, setInquiriesPage] = useState(1);
   const [status, setStatus] = useState("Memuat dashboard...");
   const [saving, setSaving] = useState(false);
 
@@ -309,6 +390,14 @@ export default function CmsPage() {
     loadDashboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setPagesPage(1);
+    setProductsPage(1);
+    setProjectsPage(1);
+    setMediaPage(1);
+    setInquiriesPage(1);
+  }, [query]);
 
   function updateData(updater: (draft: DashboardData) => DashboardData) {
     setData((current) => (current ? updater(current) : current));
@@ -455,12 +544,51 @@ export default function CmsPage() {
     await loadDashboard();
   }
 
+  async function deleteEntity(entity: DeleteEntity, id: number, label: string) {
+    if (!Number.isFinite(id) || id <= 0) {
+      updateData((draft) => ({
+        ...draft,
+        pages: entity === "page" ? draft.pages.filter((page) => page.id !== id) : draft.pages,
+        products:
+          entity === "product" ? draft.products.filter((product) => product.id !== id) : draft.products,
+        projects:
+          entity === "project" ? draft.projects.filter((project) => project.id !== id) : draft.projects,
+        media: entity === "media" ? draft.media.filter((asset) => asset.id !== id) : draft.media,
+      }));
+      return;
+    }
+
+    if (!window.confirm(`Hapus ${label}? Tindakan ini tidak bisa dibatalkan.`)) return;
+
+    setStatus(`Menghapus ${label}...`);
+    const res = await fetch("/api/cms/dashboard", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity, id }),
+    });
+    const json = await res.json();
+
+    if (res.status === 401) {
+      router.push("/cms/login");
+      return;
+    }
+    if (!res.ok) {
+      setStatus(json.error || `Gagal menghapus ${label}.`);
+      return;
+    }
+    setStatus(`${label} berhasil dihapus.`);
+    await loadDashboard();
+  }
+
   async function logout() {
     await fetch("/api/cms/auth", { method: "DELETE" });
     router.push("/cms/login");
   }
 
   const searchable = query.trim().toLowerCase();
+  const filteredPages = (data?.pages || []).filter((page) =>
+    `${page.nav_label} ${page.slug} ${page.title} ${page.meta_title || ""}`.toLowerCase().includes(searchable)
+  );
   const filteredProducts = (data?.products || []).filter((product) =>
     `${product.name} ${product.brand || ""} ${product.badge || ""}`.toLowerCase().includes(searchable)
   );
@@ -475,6 +603,11 @@ export default function CmsPage() {
       .toLowerCase()
       .includes(searchable)
   );
+  const pagesTable = paginate(filteredPages, pagesPage);
+  const productsTable = paginate(filteredProducts, productsPage);
+  const projectsTable = paginate(filteredProjects, projectsPage);
+  const mediaTable = paginate(filteredMedia, mediaPage);
+  const inquiriesTable = paginate(filteredSubmissions, inquiriesPage);
 
   const projectIndex = data?.projects.findIndex((project) => project === selectedProject) ?? -1;
 
@@ -500,14 +633,6 @@ export default function CmsPage() {
           </a>
           <button type="button" onClick={logout} className={[styles.btn, styles.btnOutline].join(" ")}>
             Logout
-          </button>
-          <button
-            type="button"
-            onClick={saveDashboard}
-            disabled={saving || !data}
-            className={[styles.btn, styles.btnGold].join(" ")}
-          >
-            {saving ? "Menyimpan..." : "Simpan"}
           </button>
           <div className={styles.userChip}>
             <div className={styles.avatar}>AD</div>
@@ -621,6 +746,7 @@ export default function CmsPage() {
             <div className={styles.editor}>
               <div className={styles.cardHead}>
                 <div className={styles.cardTitle}>Site Settings</div>
+                <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
               </div>
               <div className={styles.cardBody}>
                 <div className={styles.formGrid}>
@@ -633,20 +759,53 @@ export default function CmsPage() {
           ) : null}
 
           {data && tab === "pages" && selectedPage ? (
-            <div className={styles.split}>
-              <aside className={styles.listRail}>
-                {data.pages.map((page) => (
-                  <button
-                    key={page.id}
-                    type="button"
-                    onClick={() => setSelectedPageId(page.id)}
-                    className={[styles.railButton, selectedPage.id === page.id ? styles.active : ""].join(" ")}
-                  >
-                    {page.nav_label}
-                    <span className={styles.railMeta}>/{page.slug}</span>
-                  </button>
-                ))}
-              </aside>
+            <div className={styles.stack}>
+              <div className={styles.tableWrap}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Daftar Pages & SEO</div>
+                    <div className={styles.muted}>Pilih baris untuk update, atau hapus data halaman.</div>
+                  </div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Halaman</th>
+                      <th>Slug</th>
+                      <th>Template</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pagesTable.items.map((page) => (
+                      <tr key={page.id} className={selectedPage.id === page.id ? styles.selectedRow : ""}>
+                        <td>
+                          <strong>{page.nav_label}</strong>
+                          <div className={styles.muted}>{page.title}</div>
+                        </td>
+                        <td>/{page.slug}</td>
+                        <td>{page.template}</td>
+                        <td>
+                          <StatusBadge active={Boolean(page.is_published)} label={page.is_published ? "Published" : "Draft"} />
+                        </td>
+                        <td>
+                          <div className={styles.rowActions}>
+                            <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={() => setSelectedPageId(page.id)}>
+                              Edit
+                            </button>
+                            <button type="button" className={[styles.btn, styles.btnDanger].join(" ")} onClick={() => deleteEntity("page", page.id, page.nav_label)}>
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <TablePager page={pagesTable.safePage} totalPages={pagesTable.totalPages} total={filteredPages.length} onChange={setPagesPage} />
+              </div>
 
               <div className={styles.editor}>
                 <div className={styles.cardHead}>
@@ -707,15 +866,54 @@ export default function CmsPage() {
           ) : null}
 
           {data && tab === "products" && selectedProduct ? (
-            <div className={styles.split}>
-              <aside className={styles.listRail}>
-                {filteredProducts.map((product) => (
-                  <button key={product.id} type="button" onClick={() => setSelectedProductId(product.id)} className={[styles.railButton, selectedProduct.id === product.id ? styles.active : ""].join(" ")}>
-                    {product.name}
-                    <span className={styles.railMeta}>{formatMoney(product.price_min)} - {formatMoney(product.price_max)}</span>
-                  </button>
-                ))}
-              </aside>
+            <div className={styles.stack}>
+              <div className={styles.tableWrap}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Daftar Products</div>
+                    <div className={styles.muted}>Update data produk dan hapus item yang tidak digunakan.</div>
+                  </div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Produk</th>
+                      <th>Brand</th>
+                      <th>Harga</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productsTable.items.map((product) => (
+                      <tr key={product.id} className={selectedProduct.id === product.id ? styles.selectedRow : ""}>
+                        <td>
+                          <strong>{product.name}</strong>
+                          <div className={styles.muted}>/{product.slug}</div>
+                        </td>
+                        <td>{product.brand || "-"}</td>
+                        <td>{formatMoney(product.price_min)} - {formatMoney(product.price_max)}</td>
+                        <td>
+                          <StatusBadge active={Boolean(product.is_published)} label={product.is_published ? "Published" : "Draft"} />
+                        </td>
+                        <td>
+                          <div className={styles.rowActions}>
+                            <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={() => setSelectedProductId(product.id)}>
+                              Edit
+                            </button>
+                            <button type="button" className={[styles.btn, styles.btnDanger].join(" ")} onClick={() => deleteEntity("product", product.id, product.name)}>
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <TablePager page={productsTable.safePage} totalPages={productsTable.totalPages} total={filteredProducts.length} onChange={setProductsPage} />
+              </div>
+
               <div className={styles.editor}>
                 <div className={styles.cardHead}>
                   <div className={styles.cardTitle}>Produk</div>
@@ -746,19 +944,62 @@ export default function CmsPage() {
           ) : null}
 
           {data && tab === "projects" ? (
-            <>
+            <div className={styles.stack}>
               <div className={styles.toolbar}>
-                <button type="button" className={[styles.btn, styles.btnGold].join(" ")} onClick={addProject}>Tambah Project</button>
+                <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={addProject}>Tambah Project</button>
               </div>
-              <div className={styles.split}>
-                <aside className={styles.listRail}>
-                  {filteredProjects.map((project) => (
-                    <button key={project.id || project.slug} type="button" onClick={() => setSelectedProjectId(project.id ?? null)} className={[styles.railButton, selectedProject === project ? styles.active : ""].join(" ")}>
-                      {project.title}
-                      <span className={styles.railMeta}>{project.location || project.tag || project.slug}</span>
-                    </button>
-                  ))}
-                </aside>
+              <div className={styles.tableWrap}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Daftar Projects</div>
+                    <div className={styles.muted}>Project showcase yang tampil di website.</div>
+                  </div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Tag</th>
+                      <th>Lokasi</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projectsTable.items.map((project) => (
+                      <tr key={project.id || project.slug} className={selectedProject === project ? styles.selectedRow : ""}>
+                        <td>
+                          <strong>{project.title}</strong>
+                          <div className={styles.muted}>/{project.slug}</div>
+                        </td>
+                        <td>{project.tag || "-"}</td>
+                        <td>{project.location || "-"}</td>
+                        <td>
+                          <StatusBadge active={Boolean(project.is_published)} label={project.is_published ? "Published" : "Draft"} />
+                        </td>
+                        <td>
+                          <div className={styles.rowActions}>
+                            <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={() => setSelectedProjectId(project.id ?? null)}>
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className={[styles.btn, styles.btnDanger].join(" ")}
+                              disabled={!project.id}
+                              onClick={() => project.id && deleteEntity("project", project.id, project.title)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <TablePager page={projectsTable.safePage} totalPages={projectsTable.totalPages} total={filteredProjects.length} onChange={setProjectsPage} />
+              </div>
+
                 {selectedProject && projectIndex >= 0 ? (
                   <div className={styles.editor}>
                     <div className={styles.cardHead}>
@@ -780,20 +1021,58 @@ export default function CmsPage() {
                     </div>
                   </div>
                 ) : null}
-              </div>
-            </>
+            </div>
           ) : null}
 
           {data && tab === "media" && selectedMedia ? (
-            <div className={styles.split}>
-              <aside className={styles.listRail}>
-                {filteredMedia.map((asset) => (
-                  <button key={asset.id} type="button" onClick={() => setSelectedMediaId(asset.id)} className={[styles.railButton, selectedMedia.id === asset.id ? styles.active : ""].join(" ")}>
-                    {asset.title}
-                    <span className={styles.railMeta}>{asset.usage_type}</span>
-                  </button>
-                ))}
-              </aside>
+            <div className={styles.stack}>
+              <div className={styles.tableWrap}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Daftar Media</div>
+                    <div className={styles.muted}>Kelola asset media yang dipakai konten, produk, dan proyek.</div>
+                  </div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Media</th>
+                      <th>Usage</th>
+                      <th>URL</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mediaTable.items.map((asset) => (
+                      <tr key={asset.id} className={selectedMedia.id === asset.id ? styles.selectedRow : ""}>
+                        <td>
+                          <strong>{asset.title}</strong>
+                          <div className={styles.muted}>{asset.alt_text || "-"}</div>
+                        </td>
+                        <td>{asset.usage_type}</td>
+                        <td className={styles.urlCell}>{asset.file_url}</td>
+                        <td>
+                          <StatusBadge active={Boolean(asset.is_active)} label={asset.is_active ? "Active" : "Hidden"} />
+                        </td>
+                        <td>
+                          <div className={styles.rowActions}>
+                            <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={() => setSelectedMediaId(asset.id)}>
+                              Edit
+                            </button>
+                            <button type="button" className={[styles.btn, styles.btnDanger].join(" ")} onClick={() => deleteEntity("media", asset.id, asset.title)}>
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <TablePager page={mediaTable.safePage} totalPages={mediaTable.totalPages} total={filteredMedia.length} onChange={setMediaPage} />
+              </div>
+
               <div className={styles.editor}>
                 <div className={styles.thumb}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -806,6 +1085,13 @@ export default function CmsPage() {
                     <TextInput label="File URL" value={selectedMedia.file_url} onChange={(value) => updateMedia(selectedMedia.id, { file_url: value })} full />
                     <TextInput label="Usage Type" value={selectedMedia.usage_type} onChange={(value) => updateMedia(selectedMedia.id, { usage_type: value })} />
                     <TextInput label="Sort Order" type="number" value={selectedMedia.sort_order} onChange={(value) => updateMedia(selectedMedia.id, { sort_order: Number(value) })} />
+                    <label className={fieldClass()}>
+                      <span>Status</span>
+                      <select value={selectedMedia.is_active} onChange={(event) => updateMedia(selectedMedia.id, { is_active: Number(event.target.value) })}>
+                        <option value={1}>Active</option>
+                        <option value={0}>Hidden</option>
+                      </select>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -814,6 +1100,13 @@ export default function CmsPage() {
 
           {data && tab === "inquiries" ? (
             <div className={styles.tableWrap}>
+              <div className={styles.cardHead}>
+                <div>
+                  <div className={styles.cardTitle}>Daftar Inquiries</div>
+                  <div className={styles.muted}>Update status inquiry, lalu simpan perubahan.</div>
+                </div>
+                <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+              </div>
               <table className={styles.table}>
                 <thead>
                   <tr>
@@ -825,7 +1118,7 @@ export default function CmsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSubmissions.map((item) => (
+                  {inquiriesTable.items.map((item) => (
                     <tr key={item.id}>
                       <td>
                         <strong>{item.name}</strong>
@@ -848,6 +1141,7 @@ export default function CmsPage() {
                   ))}
                 </tbody>
               </table>
+              <TablePager page={inquiriesTable.safePage} totalPages={inquiriesTable.totalPages} total={filteredSubmissions.length} onChange={setInquiriesPage} />
             </div>
           ) : null}
         </section>
