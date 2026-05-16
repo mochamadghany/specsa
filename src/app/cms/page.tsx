@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./page.module.css";
 
 type Media = {
   id: number;
@@ -85,43 +86,101 @@ type Product = {
   meta_keywords: string | null;
 };
 
+type Project = {
+  id?: number;
+  slug: string;
+  title: string;
+  tag: string | null;
+  client_name: string | null;
+  location: string | null;
+  year: string | null;
+  description: string | null;
+  main_media_id: number | null;
+  sort_order: number;
+  is_featured: number;
+  is_published: number;
+};
+
+type ContactSubmission = {
+  id: number;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  product_interest: string | null;
+  message: string | null;
+  source_page: string | null;
+  status: "new" | "contacted" | "quoted" | "closed" | "spam";
+  created_at: string;
+  updated_at: string;
+};
+
 type DashboardData = {
   settings: Record<string, string>;
   media: Media[];
   pages: Page[];
   products: Product[];
+  projects: Project[];
+  contactSubmissions: ContactSubmission[];
 };
 
-type Tab = "settings" | "pages" | "products" | "media";
+type Tab = "overview" | "inquiries" | "pages" | "products" | "projects" | "media" | "settings";
 
-const tabs: Array<{ id: Tab; label: string }> = [
-  { id: "settings", label: "Site Settings" },
-  { id: "pages", label: "Pages & SEO" },
-  { id: "products", label: "Products" },
-  { id: "media", label: "Media" },
+const tabs: Array<{ id: Tab; label: string; glyph: string; count?: (data: DashboardData) => number }> = [
+  { id: "overview", label: "Dashboard", glyph: "D" },
+  { id: "inquiries", label: "Inquiries", glyph: "I", count: (data) => data.contactSubmissions.length },
+  { id: "pages", label: "Pages & SEO", glyph: "P", count: (data) => data.pages.length },
+  { id: "products", label: "Products", glyph: "K", count: (data) => data.products.length },
+  { id: "projects", label: "Projects", glyph: "R", count: (data) => data.projects.length },
+  { id: "media", label: "Media", glyph: "M", count: (data) => data.media.length },
+  { id: "settings", label: "Settings", glyph: "S" },
 ];
+
+const contactStatuses: ContactSubmission["status"][] = [
+  "new",
+  "contacted",
+  "quoted",
+  "closed",
+  "spam",
+];
+
+function formatMoney(value: string | number | null) {
+  const amount = Number(value || 0);
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function formatDate(value: string) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function fieldClass(full = false) {
+  return [styles.field, full ? styles.full : ""].filter(Boolean).join(" ");
+}
 
 function TextInput({
   label,
   value,
   onChange,
   type = "text",
+  full = false,
 }: {
   label: string;
-  value: string | number | null;
+  value: string | number | null | undefined;
   onChange: (value: string) => void;
   type?: string;
+  full?: boolean;
 }) {
   return (
-    <label className="grid gap-1.5">
-      <span className="text-[12px] font-semibold text-text-muted">{label}</span>
-      <input
-        type={type}
-        value={value ?? ""}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-10 rounded-md border bg-bg-base px-3 text-sm outline-none focus:border-gold"
-        style={{ borderColor: "var(--border)" }}
-      />
+    <label className={fieldClass(full)}>
+      <span>{label}</span>
+      <input type={type} value={value ?? ""} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
 }
@@ -131,22 +190,18 @@ function TextArea({
   value,
   onChange,
   rows = 4,
+  full = true,
 }: {
   label: string;
-  value: string | null;
+  value: string | null | undefined;
   onChange: (value: string) => void;
   rows?: number;
+  full?: boolean;
 }) {
   return (
-    <label className="grid gap-1.5">
-      <span className="text-[12px] font-semibold text-text-muted">{label}</span>
-      <textarea
-        rows={rows}
-        value={value ?? ""}
-        onChange={(event) => onChange(event.target.value)}
-        className="rounded-md border bg-bg-base px-3 py-2 text-sm leading-relaxed outline-none focus:border-gold"
-        style={{ borderColor: "var(--border)" }}
-      />
+    <label className={fieldClass(full)}>
+      <span>{label}</span>
+      <textarea rows={rows} value={value ?? ""} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
 }
@@ -156,20 +211,20 @@ function MediaSelect({
   value,
   media,
   onChange,
+  full,
 }: {
   label: string;
-  value: number | null;
+  value: number | null | undefined;
   media: Media[];
   onChange: (value: number | null) => void;
+  full?: boolean;
 }) {
   return (
-    <label className="grid gap-1.5">
-      <span className="text-[12px] font-semibold text-text-muted">{label}</span>
+    <label className={fieldClass(full)}>
+      <span>{label}</span>
       <select
         value={value ?? ""}
         onChange={(event) => onChange(event.target.value ? Number(event.target.value) : null)}
-        className="h-10 rounded-md border bg-bg-base px-3 text-sm outline-none focus:border-gold"
-        style={{ borderColor: "var(--border)" }}
       >
         <option value="">Tidak ada</option>
         {media.map((asset) => (
@@ -182,12 +237,24 @@ function MediaSelect({
   );
 }
 
+function StatusBadge({ active, label }: { active: boolean; label: string }) {
+  return (
+    <span className={[styles.badge, active ? styles.badgeGreen : styles.badgeRed].join(" ")}>
+      <span className={styles.dot} />
+      {label}
+    </span>
+  );
+}
+
 export default function CmsPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
-  const [tab, setTab] = useState<Tab>("settings");
+  const [tab, setTab] = useState<Tab>("overview");
+  const [query, setQuery] = useState("");
   const [selectedPageId, setSelectedPageId] = useState<number | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [status, setStatus] = useState("Memuat dashboard...");
   const [saving, setSaving] = useState(false);
 
@@ -196,14 +263,24 @@ export default function CmsPage() {
     [data, selectedPageId]
   );
   const selectedProduct = useMemo(
-    () =>
-      data?.products.find((product) => product.id === selectedProductId) ||
-      data?.products[0],
+    () => data?.products.find((product) => product.id === selectedProductId) || data?.products[0],
     [data, selectedProductId]
+  );
+  const selectedProject = useMemo(
+    () =>
+      (selectedProjectId === null
+        ? data?.projects.find((project) => !project.id)
+        : data?.projects.find((project) => project.id && project.id === selectedProjectId)) ||
+      data?.projects[0],
+    [data, selectedProjectId]
+  );
+  const selectedMedia = useMemo(
+    () => data?.media.find((asset) => asset.id === selectedMediaId) || data?.media[0],
+    [data, selectedMediaId]
   );
 
   async function loadDashboard() {
-    setStatus("Memuat data dari database...");
+    setStatus("Memuat data dari database production...");
     const res = await fetch("/api/cms/dashboard", { cache: "no-store" });
     const json = await res.json();
     if (res.status === 401) {
@@ -214,10 +291,18 @@ export default function CmsPage() {
       setStatus(json.error || "Gagal memuat dashboard.");
       return;
     }
-    setData(json);
-    setSelectedPageId(json.pages?.[0]?.id ?? null);
-    setSelectedProductId(json.products?.[0]?.id ?? null);
-    setStatus("Data siap diedit.");
+
+    const payload = {
+      ...json,
+      projects: json.projects || [],
+      contactSubmissions: json.contactSubmissions || [],
+    } as DashboardData;
+    setData(payload);
+    setSelectedPageId(payload.pages?.[0]?.id ?? null);
+    setSelectedProductId(payload.products?.[0]?.id ?? null);
+    setSelectedProjectId(payload.projects?.[0]?.id ?? null);
+    setSelectedMediaId(payload.media?.[0]?.id ?? null);
+    setStatus("Data siap diedit dan tersambung ke database.");
   }
 
   useEffect(() => {
@@ -230,10 +315,7 @@ export default function CmsPage() {
   }
 
   function updateSettings(key: string, value: string) {
-    updateData((draft) => ({
-      ...draft,
-      settings: { ...draft.settings, [key]: value },
-    }));
+    updateData((draft) => ({ ...draft, settings: { ...draft.settings, [key]: value } }));
   }
 
   function updatePage(id: number, patch: Partial<Page>) {
@@ -243,15 +325,15 @@ export default function CmsPage() {
     }));
   }
 
-  function updatePageSection(pageId: number, index: number, patch: Partial<Section>) {
+  function updatePageSection(pageId: number, sectionIndex: number, patch: Partial<Section>) {
     updateData((draft) => ({
       ...draft,
       pages: draft.pages.map((page) =>
         page.id === pageId
           ? {
               ...page,
-              sections: page.sections.map((section, sectionIndex) =>
-                sectionIndex === index ? { ...section, ...patch } : section
+              sections: page.sections.map((section, index) =>
+                index === sectionIndex ? { ...section, ...patch } : section
               ),
             }
           : page
@@ -259,30 +341,79 @@ export default function CmsPage() {
     }));
   }
 
-  function updateSectionItems(pageId: number, sectionIndex: number, lines: string) {
-    const items = lines
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((title, index) => ({
-        title,
-        body: null,
-        icon: null,
-        media_id: null,
-        href: null,
-        sort_order: index,
-        is_published: 1,
-      }));
-    updatePageSection(pageId, sectionIndex, { items });
+  function updateSectionItem(pageId: number, sectionIndex: number, itemIndex: number, patch: Partial<Item>) {
+    updateData((draft) => ({
+      ...draft,
+      pages: draft.pages.map((page) =>
+        page.id === pageId
+          ? {
+              ...page,
+              sections: page.sections.map((section, sIndex) =>
+                sIndex === sectionIndex
+                  ? {
+                      ...section,
+                      items: section.items.map((item, iIndex) =>
+                        iIndex === itemIndex ? { ...item, ...patch } : item
+                      ),
+                    }
+                  : section
+              ),
+            }
+          : page
+      ),
+    }));
+  }
+
+  function addSectionItem(pageId: number, sectionIndex: number) {
+    updatePageSection(pageId, sectionIndex, {
+      items: [
+        ...(selectedPage?.sections[sectionIndex]?.items || []),
+        {
+          title: "",
+          body: "",
+          icon: "",
+          media_id: null,
+          href: "",
+          sort_order: selectedPage?.sections[sectionIndex]?.items.length || 0,
+          is_published: 1,
+        },
+      ],
+    });
   }
 
   function updateProduct(id: number, patch: Partial<Product>) {
     updateData((draft) => ({
       ...draft,
-      products: draft.products.map((product) =>
-        product.id === id ? { ...product, ...patch } : product
+      products: draft.products.map((product) => (product.id === id ? { ...product, ...patch } : product)),
+    }));
+  }
+
+  function updateProject(index: number, patch: Partial<Project>) {
+    updateData((draft) => ({
+      ...draft,
+      projects: draft.projects.map((project, projectIndex) =>
+        projectIndex === index ? { ...project, ...patch } : project
       ),
     }));
+  }
+
+  function addProject() {
+    const project: Project = {
+      slug: `project-${Date.now()}`,
+      title: "Project Baru",
+      tag: "",
+      client_name: "",
+      location: "",
+      year: "",
+      description: "",
+      main_media_id: null,
+      sort_order: data?.projects.length || 0,
+      is_featured: 0,
+      is_published: 1,
+    };
+    updateData((draft) => ({ ...draft, projects: [...draft.projects, project] }));
+    setTab("projects");
+    setSelectedProjectId(null);
   }
 
   function updateMedia(id: number, patch: Partial<Media>) {
@@ -292,10 +423,19 @@ export default function CmsPage() {
     }));
   }
 
+  function updateSubmission(id: number, statusValue: ContactSubmission["status"]) {
+    updateData((draft) => ({
+      ...draft,
+      contactSubmissions: draft.contactSubmissions.map((item) =>
+        item.id === id ? { ...item, status: statusValue } : item
+      ),
+    }));
+  }
+
   async function saveDashboard() {
     if (!data) return;
     setSaving(true);
-    setStatus("Menyimpan perubahan...");
+    setStatus("Menyimpan perubahan ke database...");
     const res = await fetch("/api/cms/dashboard", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -320,202 +460,397 @@ export default function CmsPage() {
     router.push("/cms/login");
   }
 
+  const searchable = query.trim().toLowerCase();
+  const filteredProducts = (data?.products || []).filter((product) =>
+    `${product.name} ${product.brand || ""} ${product.badge || ""}`.toLowerCase().includes(searchable)
+  );
+  const filteredProjects = (data?.projects || []).filter((project) =>
+    `${project.title} ${project.tag || ""} ${project.location || ""}`.toLowerCase().includes(searchable)
+  );
+  const filteredMedia = (data?.media || []).filter((asset) =>
+    `${asset.title} ${asset.usage_type} ${asset.file_url}`.toLowerCase().includes(searchable)
+  );
+  const filteredSubmissions = (data?.contactSubmissions || []).filter((item) =>
+    `${item.name} ${item.phone || ""} ${item.email || ""} ${item.product_interest || ""}`
+      .toLowerCase()
+      .includes(searchable)
+  );
+
+  const projectIndex = data?.projects.findIndex((project) => project === selectedProject) ?? -1;
+
   return (
-    <main className="min-h-screen bg-bg-base text-text-dark">
-      <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur" style={{ borderColor: "var(--border)" }}>
-        <div className="max-w-container mx-auto px-8 h-[72px] flex items-center justify-between gap-4">
+    <main className={styles.shell}>
+      <header className={styles.topbar}>
+        <div className={styles.brand}>
+          <div className={styles.mark}>S</div>
           <div>
-            <div
-              className="text-[10px] uppercase text-gold"
-              style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.12em" }}
-            >
-              Specsa CMS
-            </div>
-            <h1 className="font-bold text-[20px] tracking-[-0.01em]">
-              Dashboard Konten & SEO
-            </h1>
+            <div className={styles.brandName}>Specsa</div>
+            <div className={styles.brandSub}>Admin Dashboard</div>
           </div>
-          <div className="flex items-center gap-3">
-            <a href="/" className="hidden sm:inline-flex rounded-md border px-4 py-2 text-sm font-semibold" style={{ borderColor: "var(--border)" }}>
-              Lihat Website
-            </a>
-            <button type="button" onClick={logout} className="rounded-md border px-4 py-2 text-sm font-semibold text-text-muted hover:text-gold" style={{ borderColor: "var(--border)" }}>
-              Logout
-            </button>
-            <button type="button" onClick={saveDashboard} disabled={saving || !data} className="btn btn-gold disabled:opacity-60">
-              {saving ? "Menyimpan..." : "Simpan"}
-            </button>
+        </div>
+
+        <label className={styles.search}>
+          <span className={styles.mono}>Cari</span>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Produk, page, inquiry..." />
+        </label>
+
+        <div className={styles.headerActions}>
+          <a href="/" className={[styles.btn, styles.btnOutline].join(" ")}>
+            Lihat Website
+          </a>
+          <button type="button" onClick={logout} className={[styles.btn, styles.btnOutline].join(" ")}>
+            Logout
+          </button>
+          <button
+            type="button"
+            onClick={saveDashboard}
+            disabled={saving || !data}
+            className={[styles.btn, styles.btnGold].join(" ")}
+          >
+            {saving ? "Menyimpan..." : "Simpan"}
+          </button>
+          <div className={styles.userChip}>
+            <div className={styles.avatar}>AD</div>
+            <div>
+              <div className={styles.userName}>Admin</div>
+              <div className={styles.userRole}>Production CMS</div>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-container mx-auto px-8 py-6">
-        <div className="mb-5 rounded-[8px] border bg-card-bg px-4 py-3 text-sm text-text-muted" style={{ borderColor: "var(--border)" }}>
-          {status}
-        </div>
-
-        <div className="mb-6 flex flex-wrap gap-2">
-          {tabs.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={[
-                "rounded-md border px-4 py-2 text-sm font-semibold transition-colors",
-                tab === item.id ? "bg-gold text-white" : "bg-white text-text-muted hover:text-gold",
-              ].join(" ")}
-              style={{ borderColor: "var(--border)" }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        {!data ? (
-          <div className="rounded-[10px] border bg-card-bg p-8" style={{ borderColor: "var(--border)" }}>
-            Memuat data...
-          </div>
-        ) : null}
-
-        {data && tab === "settings" ? (
-          <section className="grid md:grid-cols-2 gap-4 rounded-[10px] border bg-card-bg p-6" style={{ borderColor: "var(--border)" }}>
-            {["site_name", "site_url", "phone", "whatsapp", "email", "address"].map((key) => (
-              <TextInput
-                key={key}
-                label={key}
-                value={data.settings[key] || ""}
-                onChange={(value) => updateSettings(key, value)}
-              />
-            ))}
-          </section>
-        ) : null}
-
-        {data && tab === "pages" && selectedPage ? (
-          <section className="grid lg:grid-cols-[280px_1fr] gap-5">
-            <aside className="rounded-[10px] border bg-card-bg p-3" style={{ borderColor: "var(--border)" }}>
-              {data.pages.map((page) => (
+      <div className={styles.layout}>
+        <aside className={styles.sidebar}>
+          <div>
+            <div className={[styles.sideLabel, styles.mono].join(" ")}>Menu</div>
+            <nav className={styles.nav}>
+              {tabs.map((item) => (
                 <button
-                  key={page.id}
+                  key={item.id}
                   type="button"
-                  onClick={() => setSelectedPageId(page.id)}
-                  className={[
-                    "w-full rounded-md px-3 py-2 text-left text-sm font-semibold",
-                    selectedPage.id === page.id ? "bg-bg-soft text-gold" : "hover:bg-bg-soft",
-                  ].join(" ")}
+                  onClick={() => setTab(item.id)}
+                  className={[styles.navButton, tab === item.id ? styles.active : ""].join(" ")}
                 >
-                  {page.nav_label}
+                  <span className={styles.mono}>{item.glyph}</span>
+                  {item.label}
+                  {data && item.count ? <span className={styles.countPill}>{item.count(data)}</span> : null}
                 </button>
               ))}
-            </aside>
+            </nav>
+          </div>
 
-            <div className="grid gap-5">
-              <div className="rounded-[10px] border bg-card-bg p-6" style={{ borderColor: "var(--border)" }}>
-                <h2 className="font-bold text-[22px] mb-5">Konten Halaman</h2>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <TextInput label="Slug" value={selectedPage.slug} onChange={(value) => updatePage(selectedPage.id, { slug: value })} />
-                  <TextInput label="Nav Label" value={selectedPage.nav_label} onChange={(value) => updatePage(selectedPage.id, { nav_label: value })} />
-                  <TextInput label="Eyebrow" value={selectedPage.eyebrow} onChange={(value) => updatePage(selectedPage.id, { eyebrow: value })} />
-                  <TextInput label="CTA Label" value={selectedPage.cta_label} onChange={(value) => updatePage(selectedPage.id, { cta_label: value })} />
-                  <TextInput label="CTA URL" value={selectedPage.cta_href} onChange={(value) => updatePage(selectedPage.id, { cta_href: value })} />
-                  <MediaSelect label="Hero Image" value={selectedPage.hero_media_id} media={data.media} onChange={(value) => updatePage(selectedPage.id, { hero_media_id: value })} />
+          <div className={styles.sideFooter}>
+            <div className={styles.status}>{status}</div>
+          </div>
+        </aside>
+
+        <section className={styles.main}>
+          <div className={styles.pageHead}>
+            <div>
+              <h1 className={styles.title}>
+                {tab === "overview" ? "Dashboard Konten & SEO" : tabs.find((item) => item.id === tab)?.label}
+              </h1>
+              <p className={styles.subtitle}>
+                Edit konten dinamis website Specsa dari satu CMS yang tersambung ke database.
+              </p>
+            </div>
+            <div className={[styles.mono, styles.muted].join(" ")}>
+              {new Intl.DateTimeFormat("id-ID", { dateStyle: "full" }).format(new Date())}
+            </div>
+          </div>
+
+          {!data ? <div className={styles.empty}>Memuat data CMS...</div> : null}
+
+          {data && tab === "overview" ? (
+            <>
+              <div className={styles.gridStats}>
+                <div className={styles.stat}>
+                  <div className={styles.statTop}>Pages <span>P</span></div>
+                  <div className={styles.statValue}>{data.pages.length}</div>
+                  <div className={styles.statNote}>{data.pages.filter((page) => page.is_published).length} published</div>
                 </div>
-                <div className="mt-4 grid gap-4">
-                  <TextArea label="Title" value={selectedPage.title} rows={2} onChange={(value) => updatePage(selectedPage.id, { title: value })} />
-                  <TextArea label="Lead" value={selectedPage.lead_text} onChange={(value) => updatePage(selectedPage.id, { lead_text: value })} />
+                <div className={styles.stat}>
+                  <div className={styles.statTop}>Products <span>K</span></div>
+                  <div className={styles.statValue}>{data.products.length}</div>
+                  <div className={styles.statNote}>{data.products.filter((item) => item.is_featured).length} featured</div>
+                </div>
+                <div className={styles.stat}>
+                  <div className={styles.statTop}>Projects <span>R</span></div>
+                  <div className={styles.statValue}>{data.projects.length}</div>
+                  <div className={styles.statNote}>{data.projects.filter((item) => item.is_published).length} visible</div>
+                </div>
+                <div className={styles.stat}>
+                  <div className={styles.statTop}>New Inquiries <span>I</span></div>
+                  <div className={styles.statValue}>
+                    {data.contactSubmissions.filter((item) => item.status === "new").length}
+                  </div>
+                  <div className={styles.statNote}>{data.contactSubmissions.length} total submission</div>
                 </div>
               </div>
 
-              <div className="rounded-[10px] border bg-card-bg p-6" style={{ borderColor: "var(--border)" }}>
-                <h2 className="font-bold text-[22px] mb-5">SEO</h2>
-                <div className="grid gap-4">
-                  <TextInput label="Canonical Path" value={selectedPage.canonical_path} onChange={(value) => updatePage(selectedPage.id, { canonical_path: value })} />
-                  <TextInput label="Meta Title" value={selectedPage.meta_title} onChange={(value) => updatePage(selectedPage.id, { meta_title: value })} />
-                  <TextArea label="Meta Description" value={selectedPage.meta_description} onChange={(value) => updatePage(selectedPage.id, { meta_description: value })} />
-                  <TextArea label="Meta Keywords" value={selectedPage.meta_keywords} rows={2} onChange={(value) => updatePage(selectedPage.id, { meta_keywords: value })} />
+              <div className={styles.tableWrap}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Inquiry Terbaru</div>
+                    <div className={styles.muted}>100 data terbaru dari contact_submissions</div>
+                  </div>
+                  <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={() => setTab("inquiries")}>
+                    Kelola Inquiry
+                  </button>
+                </div>
+                <table className={styles.table}>
+                  <tbody>
+                    {data.contactSubmissions.slice(0, 5).map((item) => (
+                      <tr key={item.id}>
+                        <td>
+                          <strong>{item.name}</strong>
+                          <div className={styles.muted}>{item.email || item.phone || "-"}</div>
+                        </td>
+                        <td>{item.product_interest || "-"}</td>
+                        <td>{formatDate(item.created_at)}</td>
+                        <td><span className={styles.badge}>{item.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : null}
+
+          {data && tab === "settings" ? (
+            <div className={styles.editor}>
+              <div className={styles.cardHead}>
+                <div className={styles.cardTitle}>Site Settings</div>
+              </div>
+              <div className={styles.cardBody}>
+                <div className={styles.formGrid}>
+                  {["site_name", "site_url", "phone", "whatsapp", "email", "address"].map((key) => (
+                    <TextInput key={key} label={key} value={data.settings[key] || ""} onChange={(value) => updateSettings(key, value)} full={key === "address"} />
+                  ))}
                 </div>
               </div>
+            </div>
+          ) : null}
 
-              {selectedPage.sections.map((section, index) => (
-                <div key={section.id || index} className="rounded-[10px] border bg-card-bg p-6" style={{ borderColor: "var(--border)" }}>
-                  <h3 className="font-bold mb-4">Section {index + 1}</h3>
-                  <div className="grid gap-4">
-                    <TextInput label="Section Title" value={section.title} onChange={(value) => updatePageSection(selectedPage.id, index, { title: value })} />
-                    <TextArea label="Body" value={section.body} onChange={(value) => updatePageSection(selectedPage.id, index, { body: value })} />
-                    <TextArea
-                      label="Items, satu baris per item"
-                      value={section.items.map((item) => item.title || item.body || "").join("\n")}
-                      rows={5}
-                      onChange={(value) => updateSectionItems(selectedPage.id, index, value)}
-                    />
+          {data && tab === "pages" && selectedPage ? (
+            <div className={styles.split}>
+              <aside className={styles.listRail}>
+                {data.pages.map((page) => (
+                  <button
+                    key={page.id}
+                    type="button"
+                    onClick={() => setSelectedPageId(page.id)}
+                    className={[styles.railButton, selectedPage.id === page.id ? styles.active : ""].join(" ")}
+                  >
+                    {page.nav_label}
+                    <span className={styles.railMeta}>/{page.slug}</span>
+                  </button>
+                ))}
+              </aside>
+
+              <div className={styles.editor}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Konten Halaman</div>
+                    <div className={styles.muted}>Hero, SEO, navigasi, dan section dinamis</div>
+                  </div>
+                  <StatusBadge active={Boolean(selectedPage.is_published)} label={selectedPage.is_published ? "Published" : "Draft"} />
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formGrid}>
+                    <TextInput label="Slug" value={selectedPage.slug} onChange={(value) => updatePage(selectedPage.id, { slug: value })} />
+                    <TextInput label="Nav Label" value={selectedPage.nav_label} onChange={(value) => updatePage(selectedPage.id, { nav_label: value })} />
+                    <TextInput label="Eyebrow" value={selectedPage.eyebrow} onChange={(value) => updatePage(selectedPage.id, { eyebrow: value })} />
+                    <TextInput label="CTA Label" value={selectedPage.cta_label} onChange={(value) => updatePage(selectedPage.id, { cta_label: value })} />
+                    <TextInput label="CTA URL" value={selectedPage.cta_href} onChange={(value) => updatePage(selectedPage.id, { cta_href: value })} />
+                    <MediaSelect label="Hero Image" value={selectedPage.hero_media_id} media={data.media} onChange={(value) => updatePage(selectedPage.id, { hero_media_id: value })} />
+                    <TextArea label="Title" value={selectedPage.title} rows={2} onChange={(value) => updatePage(selectedPage.id, { title: value })} />
+                    <TextArea label="Lead" value={selectedPage.lead_text} onChange={(value) => updatePage(selectedPage.id, { lead_text: value })} />
+                    <TextInput label="Canonical Path" value={selectedPage.canonical_path} onChange={(value) => updatePage(selectedPage.id, { canonical_path: value })} />
+                    <TextInput label="Meta Title" value={selectedPage.meta_title} onChange={(value) => updatePage(selectedPage.id, { meta_title: value })} />
+                    <TextArea label="Meta Description" value={selectedPage.meta_description} onChange={(value) => updatePage(selectedPage.id, { meta_description: value })} />
+                    <TextArea label="Meta Keywords" rows={2} value={selectedPage.meta_keywords} onChange={(value) => updatePage(selectedPage.id, { meta_keywords: value })} />
+                  </div>
+
+                  <div className={styles.sectionStack}>
+                    {selectedPage.sections.map((section, sectionIndex) => (
+                      <div key={section.id || sectionIndex} className={styles.miniCard}>
+                        <div className={styles.miniTitle}>
+                          <span>Section {sectionIndex + 1}</span>
+                          <button type="button" className={styles.switch + (section.is_published ? ` ${styles.on}` : "")} onClick={() => updatePageSection(selectedPage.id, sectionIndex, { is_published: section.is_published ? 0 : 1 })} aria-label="Toggle section" />
+                        </div>
+                        <div className={styles.formGrid}>
+                          <TextInput label="Section Key" value={section.section_key} onChange={(value) => updatePageSection(selectedPage.id, sectionIndex, { section_key: value })} />
+                          <TextInput label="Eyebrow" value={section.eyebrow} onChange={(value) => updatePageSection(selectedPage.id, sectionIndex, { eyebrow: value })} />
+                          <TextInput label="Title" value={section.title} onChange={(value) => updatePageSection(selectedPage.id, sectionIndex, { title: value })} full />
+                          <TextArea label="Body" value={section.body} onChange={(value) => updatePageSection(selectedPage.id, sectionIndex, { body: value })} />
+                          <MediaSelect label="Section Media" value={section.media_id} media={data.media} onChange={(value) => updatePageSection(selectedPage.id, sectionIndex, { media_id: value })} />
+                          <TextInput label="Sort Order" type="number" value={section.sort_order} onChange={(value) => updatePageSection(selectedPage.id, sectionIndex, { sort_order: Number(value) })} />
+                        </div>
+                        {section.items.map((item, itemIndex) => (
+                          <div className={styles.itemRow} key={item.id || itemIndex}>
+                            <TextInput label="Item Title" value={item.title} onChange={(value) => updateSectionItem(selectedPage.id, sectionIndex, itemIndex, { title: value })} />
+                            <TextInput label="Item Body" value={item.body} onChange={(value) => updateSectionItem(selectedPage.id, sectionIndex, itemIndex, { body: value })} />
+                            <TextInput label="Icon" value={item.icon} onChange={(value) => updateSectionItem(selectedPage.id, sectionIndex, itemIndex, { icon: value })} />
+                            <TextInput label="Href" value={item.href} onChange={(value) => updateSectionItem(selectedPage.id, sectionIndex, itemIndex, { href: value })} />
+                          </div>
+                        ))}
+                        <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={() => addSectionItem(selectedPage.id, sectionIndex)}>
+                          Tambah Item
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {data && tab === "products" && selectedProduct ? (
-          <section className="grid lg:grid-cols-[280px_1fr] gap-5">
-            <aside className="rounded-[10px] border bg-card-bg p-3" style={{ borderColor: "var(--border)" }}>
-              {data.products.map((product) => (
-                <button
-                  key={product.id}
-                  type="button"
-                  onClick={() => setSelectedProductId(product.id)}
-                  className={[
-                    "w-full rounded-md px-3 py-2 text-left text-sm font-semibold",
-                    selectedProduct.id === product.id ? "bg-bg-soft text-gold" : "hover:bg-bg-soft",
-                  ].join(" ")}
-                >
-                  {product.name}
-                </button>
-              ))}
-            </aside>
-
-            <div className="rounded-[10px] border bg-card-bg p-6" style={{ borderColor: "var(--border)" }}>
-              <h2 className="font-bold text-[22px] mb-5">Produk</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                <TextInput label="Slug" value={selectedProduct.slug} onChange={(value) => updateProduct(selectedProduct.id, { slug: value })} />
-                <TextInput label="Name" value={selectedProduct.name} onChange={(value) => updateProduct(selectedProduct.id, { name: value })} />
-                <TextInput label="Badge" value={selectedProduct.badge} onChange={(value) => updateProduct(selectedProduct.id, { badge: value })} />
-                <TextInput label="Brand" value={selectedProduct.brand} onChange={(value) => updateProduct(selectedProduct.id, { brand: value })} />
-                <TextInput label="Unit" value={selectedProduct.unit} onChange={(value) => updateProduct(selectedProduct.id, { unit: value })} />
-                <TextInput label="Coverage" value={selectedProduct.coverage} type="number" onChange={(value) => updateProduct(selectedProduct.id, { coverage: value })} />
-                <TextInput label="Price Min" value={selectedProduct.price_min} type="number" onChange={(value) => updateProduct(selectedProduct.id, { price_min: value })} />
-                <TextInput label="Price Max" value={selectedProduct.price_max} type="number" onChange={(value) => updateProduct(selectedProduct.id, { price_max: value })} />
-                <TextInput label="Waste Factor" value={selectedProduct.waste_factor} type="number" onChange={(value) => updateProduct(selectedProduct.id, { waste_factor: value })} />
-                <TextInput label="Calc Label" value={selectedProduct.calc_label} onChange={(value) => updateProduct(selectedProduct.id, { calc_label: value })} />
-                <MediaSelect label="Product Image" value={selectedProduct.main_media_id} media={data.media} onChange={(value) => updateProduct(selectedProduct.id, { main_media_id: value })} />
-              </div>
-              <div className="mt-4 grid gap-4">
-                <TextArea label="Short Description" value={selectedProduct.short_description} onChange={(value) => updateProduct(selectedProduct.id, { short_description: value })} />
-                <TextInput label="SEO Title" value={selectedProduct.meta_title} onChange={(value) => updateProduct(selectedProduct.id, { meta_title: value })} />
-                <TextArea label="SEO Description" value={selectedProduct.meta_description} onChange={(value) => updateProduct(selectedProduct.id, { meta_description: value })} />
-                <TextArea label="SEO Keywords" value={selectedProduct.meta_keywords} rows={2} onChange={(value) => updateProduct(selectedProduct.id, { meta_keywords: value })} />
               </div>
             </div>
-          </section>
-        ) : null}
+          ) : null}
 
-        {data && tab === "media" ? (
-          <section className="grid gap-4">
-            {data.media.map((asset) => (
-              <article key={asset.id} className="grid lg:grid-cols-[160px_1fr] gap-4 rounded-[10px] border bg-card-bg p-4" style={{ borderColor: "var(--border)" }}>
-                <div className="overflow-hidden rounded-md bg-bg-soft">
+          {data && tab === "products" && selectedProduct ? (
+            <div className={styles.split}>
+              <aside className={styles.listRail}>
+                {filteredProducts.map((product) => (
+                  <button key={product.id} type="button" onClick={() => setSelectedProductId(product.id)} className={[styles.railButton, selectedProduct.id === product.id ? styles.active : ""].join(" ")}>
+                    {product.name}
+                    <span className={styles.railMeta}>{formatMoney(product.price_min)} - {formatMoney(product.price_max)}</span>
+                  </button>
+                ))}
+              </aside>
+              <div className={styles.editor}>
+                <div className={styles.cardHead}>
+                  <div className={styles.cardTitle}>Produk</div>
+                  <button type="button" className={styles.switch + (selectedProduct.is_published ? ` ${styles.on}` : "")} onClick={() => updateProduct(selectedProduct.id, { is_published: selectedProduct.is_published ? 0 : 1 })} aria-label="Toggle product" />
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formGrid}>
+                    <TextInput label="Slug" value={selectedProduct.slug} onChange={(value) => updateProduct(selectedProduct.id, { slug: value })} />
+                    <TextInput label="Name" value={selectedProduct.name} onChange={(value) => updateProduct(selectedProduct.id, { name: value })} />
+                    <TextInput label="Badge" value={selectedProduct.badge} onChange={(value) => updateProduct(selectedProduct.id, { badge: value })} />
+                    <TextInput label="Brand" value={selectedProduct.brand} onChange={(value) => updateProduct(selectedProduct.id, { brand: value })} />
+                    <MediaSelect label="Product Image" value={selectedProduct.main_media_id} media={data.media} onChange={(value) => updateProduct(selectedProduct.id, { main_media_id: value })} />
+                    <TextInput label="Unit" value={selectedProduct.unit} onChange={(value) => updateProduct(selectedProduct.id, { unit: value })} />
+                    <TextInput label="Coverage" type="number" value={selectedProduct.coverage} onChange={(value) => updateProduct(selectedProduct.id, { coverage: value })} />
+                    <TextInput label="Price Min" type="number" value={selectedProduct.price_min} onChange={(value) => updateProduct(selectedProduct.id, { price_min: value })} />
+                    <TextInput label="Price Max" type="number" value={selectedProduct.price_max} onChange={(value) => updateProduct(selectedProduct.id, { price_max: value })} />
+                    <TextInput label="Waste Factor" type="number" value={selectedProduct.waste_factor} onChange={(value) => updateProduct(selectedProduct.id, { waste_factor: value })} />
+                    <TextInput label="Calc Label" value={selectedProduct.calc_label} onChange={(value) => updateProduct(selectedProduct.id, { calc_label: value })} />
+                    <TextInput label="Sort Order" type="number" value={selectedProduct.sort_order} onChange={(value) => updateProduct(selectedProduct.id, { sort_order: Number(value) })} />
+                    <TextArea label="Short Description" value={selectedProduct.short_description} onChange={(value) => updateProduct(selectedProduct.id, { short_description: value })} />
+                    <TextInput label="SEO Title" value={selectedProduct.meta_title} onChange={(value) => updateProduct(selectedProduct.id, { meta_title: value })} />
+                    <TextArea label="SEO Description" value={selectedProduct.meta_description} onChange={(value) => updateProduct(selectedProduct.id, { meta_description: value })} />
+                    <TextArea label="SEO Keywords" rows={2} value={selectedProduct.meta_keywords} onChange={(value) => updateProduct(selectedProduct.id, { meta_keywords: value })} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {data && tab === "projects" ? (
+            <>
+              <div className={styles.toolbar}>
+                <button type="button" className={[styles.btn, styles.btnGold].join(" ")} onClick={addProject}>Tambah Project</button>
+              </div>
+              <div className={styles.split}>
+                <aside className={styles.listRail}>
+                  {filteredProjects.map((project) => (
+                    <button key={project.id || project.slug} type="button" onClick={() => setSelectedProjectId(project.id ?? null)} className={[styles.railButton, selectedProject === project ? styles.active : ""].join(" ")}>
+                      {project.title}
+                      <span className={styles.railMeta}>{project.location || project.tag || project.slug}</span>
+                    </button>
+                  ))}
+                </aside>
+                {selectedProject && projectIndex >= 0 ? (
+                  <div className={styles.editor}>
+                    <div className={styles.cardHead}>
+                      <div className={styles.cardTitle}>Project Showcase</div>
+                      <button type="button" className={styles.switch + (selectedProject.is_published ? ` ${styles.on}` : "")} onClick={() => updateProject(projectIndex, { is_published: selectedProject.is_published ? 0 : 1 })} aria-label="Toggle project" />
+                    </div>
+                    <div className={styles.cardBody}>
+                      <div className={styles.formGrid}>
+                        <TextInput label="Slug" value={selectedProject.slug} onChange={(value) => updateProject(projectIndex, { slug: value })} />
+                        <TextInput label="Title" value={selectedProject.title} onChange={(value) => updateProject(projectIndex, { title: value })} />
+                        <TextInput label="Tag" value={selectedProject.tag} onChange={(value) => updateProject(projectIndex, { tag: value })} />
+                        <TextInput label="Client Name" value={selectedProject.client_name} onChange={(value) => updateProject(projectIndex, { client_name: value })} />
+                        <TextInput label="Location" value={selectedProject.location} onChange={(value) => updateProject(projectIndex, { location: value })} />
+                        <TextInput label="Year" value={selectedProject.year} onChange={(value) => updateProject(projectIndex, { year: value })} />
+                        <MediaSelect label="Project Image" value={selectedProject.main_media_id} media={data.media} onChange={(value) => updateProject(projectIndex, { main_media_id: value })} />
+                        <TextInput label="Sort Order" type="number" value={selectedProject.sort_order} onChange={(value) => updateProject(projectIndex, { sort_order: Number(value) })} />
+                        <TextArea label="Description" value={selectedProject.description} onChange={(value) => updateProject(projectIndex, { description: value })} />
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+
+          {data && tab === "media" && selectedMedia ? (
+            <div className={styles.split}>
+              <aside className={styles.listRail}>
+                {filteredMedia.map((asset) => (
+                  <button key={asset.id} type="button" onClick={() => setSelectedMediaId(asset.id)} className={[styles.railButton, selectedMedia.id === asset.id ? styles.active : ""].join(" ")}>
+                    {asset.title}
+                    <span className={styles.railMeta}>{asset.usage_type}</span>
+                  </button>
+                ))}
+              </aside>
+              <div className={styles.editor}>
+                <div className={styles.thumb}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={asset.file_url} alt={asset.alt_text || asset.title} className="h-28 w-full object-cover" />
+                  <img src={selectedMedia.file_url} alt={selectedMedia.alt_text || selectedMedia.title} />
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <TextInput label="Title" value={asset.title} onChange={(value) => updateMedia(asset.id, { title: value })} />
-                  <TextInput label="Alt Text" value={asset.alt_text} onChange={(value) => updateMedia(asset.id, { alt_text: value })} />
-                  <TextInput label="File URL" value={asset.file_url} onChange={(value) => updateMedia(asset.id, { file_url: value })} />
-                  <TextInput label="Usage Type" value={asset.usage_type} onChange={(value) => updateMedia(asset.id, { usage_type: value })} />
-                  <TextInput label="Sort Order" value={asset.sort_order} type="number" onChange={(value) => updateMedia(asset.id, { sort_order: Number(value) })} />
+                <div className={styles.cardBody}>
+                  <div className={styles.formGrid}>
+                    <TextInput label="Title" value={selectedMedia.title} onChange={(value) => updateMedia(selectedMedia.id, { title: value })} />
+                    <TextInput label="Alt Text" value={selectedMedia.alt_text} onChange={(value) => updateMedia(selectedMedia.id, { alt_text: value })} />
+                    <TextInput label="File URL" value={selectedMedia.file_url} onChange={(value) => updateMedia(selectedMedia.id, { file_url: value })} full />
+                    <TextInput label="Usage Type" value={selectedMedia.usage_type} onChange={(value) => updateMedia(selectedMedia.id, { usage_type: value })} />
+                    <TextInput label="Sort Order" type="number" value={selectedMedia.sort_order} onChange={(value) => updateMedia(selectedMedia.id, { sort_order: Number(value) })} />
+                  </div>
                 </div>
-              </article>
-            ))}
-          </section>
-        ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {data && tab === "inquiries" ? (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Kontak</th>
+                    <th>Produk</th>
+                    <th>Pesan</th>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSubmissions.map((item) => (
+                    <tr key={item.id}>
+                      <td>
+                        <strong>{item.name}</strong>
+                        <div className={styles.muted}>{item.phone || "-"}</div>
+                        <div className={styles.muted}>{item.email || "-"}</div>
+                      </td>
+                      <td>{item.product_interest || "-"}</td>
+                      <td className={styles.muted}>{item.message || "-"}</td>
+                      <td>{formatDate(item.created_at)}</td>
+                      <td>
+                        <label className={styles.field}>
+                          <select value={item.status} onChange={(event) => updateSubmission(item.id, event.target.value as ContactSubmission["status"])}>
+                            {contactStatuses.map((statusOption) => (
+                              <option key={statusOption} value={statusOption}>{statusOption}</option>
+                            ))}
+                          </select>
+                        </label>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+        </section>
       </div>
     </main>
   );

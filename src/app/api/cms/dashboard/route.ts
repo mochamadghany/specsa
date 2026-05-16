@@ -90,11 +90,41 @@ type ProductRow = RowDataPacket & {
   meta_keywords: string | null;
 };
 
+type ProjectRow = RowDataPacket & {
+  id: number;
+  slug: string;
+  title: string;
+  tag: string | null;
+  client_name: string | null;
+  location: string | null;
+  year: string | null;
+  description: string | null;
+  main_media_id: number | null;
+  sort_order: number;
+  is_featured: number;
+  is_published: number;
+};
+
+type ContactSubmissionRow = RowDataPacket & {
+  id: number;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  product_interest: string | null;
+  message: string | null;
+  source_page: string | null;
+  status: "new" | "contacted" | "quoted" | "closed" | "spam";
+  created_at: string;
+  updated_at: string;
+};
+
 type DashboardPayload = {
   settings: Record<string, string>;
   media: MediaRow[];
   pages: Array<PageRow & { sections: Array<SectionRow & { items: ItemRow[] }> }>;
   products: ProductRow[];
+  projects: ProjectRow[];
+  contactSubmissions: ContactSubmissionRow[];
 };
 
 function unauthorized() {
@@ -135,6 +165,20 @@ export async function GET(request: NextRequest) {
        LEFT JOIN seo_metadata s ON s.entity_type = 'product' AND s.entity_id = p.id
        ORDER BY p.sort_order, p.id`
     );
+    const [projects] = await db.query<ProjectRow[]>(
+      `SELECT id, slug, title, tag, client_name, location, year, description,
+        main_media_id, sort_order, is_featured, is_published
+       FROM projects
+       ORDER BY sort_order, id`
+    );
+    const [contactSubmissions] = await db.query<ContactSubmissionRow[]>(
+      `SELECT id, name, phone, email, product_interest, message, source_page, status,
+        DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s.000Z') AS created_at,
+        DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%s.000Z') AS updated_at
+       FROM contact_submissions
+       ORDER BY created_at DESC, id DESC
+       LIMIT 100`
+    );
 
     const itemMap = new Map<number, ItemRow[]>();
     items.forEach((item) => {
@@ -159,6 +203,8 @@ export async function GET(request: NextRequest) {
       media,
       pages: pages.map((page) => ({ ...page, sections: sectionMap.get(page.id) || [] })),
       products,
+      projects,
+      contactSubmissions,
     } satisfies DashboardPayload);
   } catch (error) {
     return NextResponse.json(
@@ -353,6 +399,57 @@ export async function PUT(request: NextRequest) {
           product.meta_keywords || "",
           product.main_media_id || null,
         ]
+      );
+    }
+
+    for (const project of body.projects || []) {
+      if (project.id) {
+        await conn.execute(
+          `UPDATE projects
+           SET slug = ?, title = ?, tag = ?, client_name = ?, location = ?, year = ?,
+               description = ?, main_media_id = ?, sort_order = ?, is_featured = ?, is_published = ?
+           WHERE id = ?`,
+          [
+            project.slug,
+            project.title,
+            project.tag,
+            project.client_name,
+            project.location,
+            project.year,
+            project.description,
+            project.main_media_id || null,
+            Number(project.sort_order || 0),
+            project.is_featured ? 1 : 0,
+            project.is_published ? 1 : 0,
+            project.id,
+          ]
+        );
+      } else {
+        await conn.execute(
+          `INSERT INTO projects
+           (slug, title, tag, client_name, location, year, description, main_media_id, sort_order, is_featured, is_published)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            project.slug,
+            project.title,
+            project.tag,
+            project.client_name,
+            project.location,
+            project.year,
+            project.description,
+            project.main_media_id || null,
+            Number(project.sort_order || 0),
+            project.is_featured ? 1 : 0,
+            project.is_published ? 1 : 0,
+          ]
+        );
+      }
+    }
+
+    for (const submission of body.contactSubmissions || []) {
+      await conn.execute(
+        "UPDATE contact_submissions SET status = ? WHERE id = ?",
+        [submission.status, submission.id]
       );
     }
 
