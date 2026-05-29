@@ -51,8 +51,8 @@ export default function Products({ products = staticProducts }: { products?: Pro
             </h2>
           </div>
           <p className="max-w-[280px] text-text-muted text-sm leading-relaxed reveal delay-1">
-            Material dari brand ternama, siap stok dan siap kirim ke lokasi
-            proyek Anda di Jabodetabek.
+            Fokus pada solusi Atap (tensile architecture & modular structure) dan
+            Fasad — didukung engineering, fabrikasi, dan aplikasi bergaransi.
           </p>
         </div>
 
@@ -122,10 +122,10 @@ export default function Products({ products = staticProducts }: { products?: Pro
           className="text-center mt-12 text-[13px] text-text-muted reveal"
           style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.06em" }}
         >
-          + VINYL FLOOR GERFLOOR &nbsp;·&nbsp; AKSESORIS & SISTEM TERKAIT
+          ATAP MEMBRANE &nbsp;·&nbsp; GRC BOARD & FASAD DEKORATIF
           &nbsp;·&nbsp;{" "}
           <a href="#kontak" className="text-gold hover:text-gold-light">
-            tanyakan stok lainnya →
+            konsultasi kebutuhan proyek →
           </a>
         </p>
       </div>

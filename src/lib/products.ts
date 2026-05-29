@@ -1,3 +1,15 @@
+export type PriceTier = {
+  /** Batas atas luas (m²) untuk tier ini. null = tak terbatas (tier teratas). */
+  maxArea: number | null;
+  /** Harga per satuan (Rp) untuk tier ini. */
+  pricePerUnit: number;
+};
+
+export type SupportingBrand = {
+  name: string;
+  origin: string;
+};
+
 export type Product = {
   id: string;
   img: string;
@@ -15,86 +27,76 @@ export type Product = {
   cnc: boolean;
   categorySlug?: string;
   categoryName?: string;
+  /** Pricing bertingkat berdasarkan luas (dipakai produk membrane/atap). */
+  priceTiers?: PriceTier[];
+  /** Catatan harga, mis. "harga final tergantung design yang disepakati". */
+  priceNote?: string;
+  /** Merek membrane pendukung yang ditampilkan di halaman produk. */
+  supportingBrands?: SupportingBrand[];
 };
+
+/** Tier pricing standar membrane/atap: ≤200 m² → 1,2 jt; >200 m² → 1,3 jt per m². */
+export const atapPriceTiers: PriceTier[] = [
+  { maxArea: 200, pricePerUnit: 1200000 },
+  { maxArea: null, pricePerUnit: 1300000 },
+];
+
+export const membraneSupportingBrands: SupportingBrand[] = [
+  { name: "AGtex", origin: "ex Ateja — Bandung, Indonesia" },
+  { name: "Sioen", origin: "Belgia" },
+  { name: "Serge Ferrari", origin: "Prancis" },
+];
 
 export const staticProducts: Product[] = [
   {
-    id: "seion",
+    id: "tensile-architecture",
     img: "/images/product-tensile.png",
-    alt: "SEION Membrane Tensile",
-    badge: "Membrane Tensile",
-    name: "SEION Membrane",
-    brand: "SEION",
-    desc: "Membran tensile untuk kanopi & atap tarik dengan ketahanan cuaca tinggi.",
-    priceMin: 350000,
-    priceMax: 650000,
+    alt: "Tensile Architecture — atap membrane bentang besar",
+    badge: "Atap · Bentang Besar",
+    name: "Tensile Architecture",
+    brand: "Membrane premium (AGtex / Sioen / Serge Ferrari)",
+    desc: "Atap membrane bentang besar untuk skala stadion, lapangan olahraga, dan area publik. Struktur tarik berkekuatan tinggi dengan perhitungan baja & software membrane.",
+    priceMin: 1200000,
+    priceMax: 1500000,
     unit: "m2",
     coverage: 1,
     wasteFactor: 0.08,
-    calcLabel: "m2 area kanopi / atap membrane",
+    calcLabel: "m2 area atap membrane",
     cnc: false,
-    categorySlug: "membrane-tensile",
-    categoryName: "Membrane Tensile (Roofing)",
+    categorySlug: "atap",
+    categoryName: "Atap",
+    priceTiers: atapPriceTiers,
+    priceNote:
+      "Harga ditentukan berdasarkan design yang disepakati. Estimasi kalkulator memakai Rp 1,2 jt/m² (≤200 m²) dan Rp 1,3 jt/m² (>200 m²).",
+    supportingBrands: membraneSupportingBrands,
   },
   {
-    id: "cg-ferrari",
+    id: "modular-structure",
     img: "/images/product-tensile.png",
-    alt: "CG Ferrari Membrane Tensile",
-    badge: "Membrane Tensile",
-    name: "CG Ferrari Membrane",
-    brand: "CG Ferrari",
-    desc: "Membran premium asal Prancis untuk struktur tensile berkelas dan tahan lama.",
-    priceMin: 600000,
-    priceMax: 1200000,
+    alt: "Modular Structure — atap membrane bentang kecil",
+    badge: "Atap · Bentang Kecil",
+    name: "Modular Structure",
+    brand: "Membrane premium (AGtex / Sioen / Serge Ferrari)",
+    desc: "Atap membrane bentang kecil skala rumahan — kanopi, carport, dan area outdoor. Desain modular dengan material membrane berkualitas dan aplikasi bergaransi.",
+    priceMin: 1200000,
+    priceMax: 1500000,
     unit: "m2",
     coverage: 1,
     wasteFactor: 0.08,
-    calcLabel: "m2 area kanopi / atap membrane",
+    calcLabel: "m2 area atap membrane",
     cnc: false,
-    categorySlug: "membrane-tensile",
-    categoryName: "Membrane Tensile (Roofing)",
-  },
-  {
-    id: "agatex",
-    img: "/images/product-tensile.png",
-    alt: "Agatex Membrane Tensile",
-    badge: "Membrane Tensile",
-    name: "Agatex Membrane",
-    brand: "Agatex",
-    desc: "Membran tensile ekonomis dengan performa baik untuk berbagai aplikasi outdoor.",
-    priceMin: 300000,
-    priceMax: 550000,
-    unit: "m2",
-    coverage: 1,
-    wasteFactor: 0.08,
-    calcLabel: "m2 area kanopi / atap membrane",
-    cnc: false,
-    categorySlug: "membrane-tensile",
-    categoryName: "Membrane Tensile (Roofing)",
-  },
-  {
-    id: "conwood",
-    img: "/images/product-conwood.png",
-    alt: "Conwood Dekoratif",
-    badge: "Viber Semen & Dekoratif",
-    name: "Conwood",
-    brand: "Conwood",
-    desc: "Alternatif kayu berbahan semen fiber, tahan cuaca & rayap. Cocok untuk fasad dekoratif dan CNC custom.",
-    priceMin: 180000,
-    priceMax: 350000,
-    unit: "lembar",
-    coverage: 0.6,
-    wasteFactor: 0.12,
-    calcLabel: "m2 area fasad / dinding",
-    cnc: true,
-    categorySlug: "viber-semen-decorative",
-    categoryName: "Viber Semen Panel & Decorative",
+    categorySlug: "atap",
+    categoryName: "Atap",
+    priceTiers: atapPriceTiers,
+    priceNote:
+      "Harga ditentukan berdasarkan design yang disepakati. Estimasi kalkulator memakai Rp 1,2 jt/m² (≤200 m²) dan Rp 1,3 jt/m² (>200 m²).",
+    supportingBrands: membraneSupportingBrands,
   },
   {
     id: "grc-board",
     img: "/images/product-grc.png",
     alt: "GRC Board Cat Specsa Vibercoat",
-    badge: "Viber Semen & Dekoratif",
+    badge: "Fasad · Dekoratif",
     name: "GRC Board (Cat Specsa / Vibercoat)",
     brand: "Cat Specsa / Vibercoat",
     desc: "Panel semen fiber untuk fasad, partisi, dan dekorasi, dilengkapi finishing Cat Specsa / Vibercoat.",
@@ -105,44 +107,26 @@ export const staticProducts: Product[] = [
     wasteFactor: 0.1,
     calcLabel: "m2 area dinding / fasad",
     cnc: false,
-    categorySlug: "viber-semen-decorative",
-    categoryName: "Viber Semen Panel & Decorative",
+    categorySlug: "fasad",
+    categoryName: "Fasad",
   },
   {
-    id: "waterproofing-system",
-    img: "/images/product-bitmix.png",
-    alt: "Waterproofing System",
-    badge: "Waterproofing",
-    name: "Waterproofing System",
-    brand: "Specsa System",
-    desc: "Sistem pelapis anti bocor untuk atap datar, basement, kamar mandi, dan area lembab.",
-    priceMin: 85000,
-    priceMax: 250000,
-    unit: "m2",
-    coverage: 1,
-    wasteFactor: 0.15,
-    calcLabel: "m2 area waterproofing",
-    cnc: false,
-    categorySlug: "waterproofing-system",
-    categoryName: "Waterproofing System",
-  },
-  {
-    id: "protection-solution",
-    img: "/images/product-wallspan.png",
-    alt: "Protection & Solution",
-    badge: "Protection",
-    name: "Protection & Solution",
-    brand: "Specsa Solution",
-    desc: "Solusi proteksi & perlindungan permukaan bangunan untuk daya tahan jangka panjang.",
-    priceMin: 100000,
-    priceMax: 300000,
-    unit: "m2",
-    coverage: 1,
-    wasteFactor: 0.1,
-    calcLabel: "m2 area aplikasi",
-    cnc: false,
-    categorySlug: "protection-solution",
-    categoryName: "Protection & Solution",
+    id: "conwood",
+    img: "/images/product-conwood.png",
+    alt: "Conwood Dekoratif",
+    badge: "Fasad · Dekoratif",
+    name: "Conwood",
+    brand: "Conwood",
+    desc: "Alternatif kayu berbahan semen fiber, tahan cuaca & rayap. Cocok untuk fasad dekoratif dan CNC custom.",
+    priceMin: 180000,
+    priceMax: 350000,
+    unit: "lembar",
+    coverage: 0.6,
+    wasteFactor: 0.12,
+    calcLabel: "m2 area fasad / dinding",
+    cnc: true,
+    categorySlug: "fasad",
+    categoryName: "Fasad",
   },
 ];
 
@@ -172,4 +156,17 @@ export function groupByCategory(items: Product[]): ProductCategoryGroup[] {
   }
 
   return groups;
+}
+
+/**
+ * Resolusi harga per satuan berdasarkan luas untuk produk ber-tier (atap/membrane).
+ * Mengembalikan null bila produk tidak memakai pricing bertingkat.
+ */
+export function resolveTierPrice(product: Product, area: number): number | null {
+  const tiers = product.priceTiers;
+  if (!tiers || tiers.length === 0) return null;
+  for (const tier of tiers) {
+    if (tier.maxArea === null || area <= tier.maxArea) return tier.pricePerUnit;
+  }
+  return tiers[tiers.length - 1].pricePerUnit;
 }

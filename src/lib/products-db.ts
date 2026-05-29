@@ -1,6 +1,14 @@
 import { RowDataPacket } from "mysql2/promise";
 import { getDbPool } from "./db";
-import { staticProducts, type Product } from "./products";
+import {
+  atapPriceTiers,
+  membraneSupportingBrands,
+  staticProducts,
+  type Product,
+} from "./products";
+
+const ATAP_PRICE_NOTE =
+  "Harga ditentukan berdasarkan design yang disepakati. Estimasi kalkulator memakai Rp 1,2 jt/m² (≤200 m²) dan Rp 1,3 jt/m² (>200 m²).";
 
 type ProductRow = RowDataPacket & {
   slug: string;
@@ -38,24 +46,35 @@ export async function getProducts(): Promise<Product[]> {
 
     if (!rows.length) return staticProducts;
 
-    return rows.map((row) => ({
-      id: row.slug,
-      img: row.file_url || "/images/product-grc.png",
-      alt: row.alt_text || row.name,
-      badge: row.badge || "",
-      name: row.name,
-      brand: row.brand || "",
-      desc: row.short_description || "",
-      priceMin: Number(row.price_min || 0),
-      priceMax: Number(row.price_max || 0),
-      unit: row.unit || "unit",
-      coverage: Number(row.coverage || 1) || 1,
-      wasteFactor: Number(row.waste_factor || 0),
-      calcLabel: row.calc_label || "m2 area proyek",
-      cnc: Boolean(row.has_cnc_option),
-      categorySlug: row.category_slug || "lainnya",
-      categoryName: row.category_name || "Produk Lainnya",
-    }));
+    return rows.map((row) => {
+      const categorySlug = row.category_slug || "lainnya";
+      const isAtap = categorySlug === "atap";
+      return {
+        id: row.slug,
+        img: row.file_url || "/images/product-grc.png",
+        alt: row.alt_text || row.name,
+        badge: row.badge || "",
+        name: row.name,
+        brand: row.brand || "",
+        desc: row.short_description || "",
+        priceMin: Number(row.price_min || 0),
+        priceMax: Number(row.price_max || 0),
+        unit: row.unit || "unit",
+        coverage: Number(row.coverage || 1) || 1,
+        wasteFactor: Number(row.waste_factor || 0),
+        calcLabel: row.calc_label || "m2 area proyek",
+        cnc: Boolean(row.has_cnc_option),
+        categorySlug,
+        categoryName: row.category_name || "Produk Lainnya",
+        ...(isAtap
+          ? {
+              priceTiers: atapPriceTiers,
+              priceNote: ATAP_PRICE_NOTE,
+              supportingBrands: membraneSupportingBrands,
+            }
+          : {}),
+      };
+    });
   } catch {
     return staticProducts;
   }

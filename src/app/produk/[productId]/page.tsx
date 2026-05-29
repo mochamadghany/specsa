@@ -17,29 +17,17 @@ type PageProps = {
 };
 
 const applicationsByCategory: Record<string, string[]> = {
-  "membrane-tensile": [
-    "Kanopi & carport",
-    "Atap area publik / plaza",
-    "Parkir & fasilitas outdoor",
-    "Stadion, tribun & panggung",
+  atap: [
+    "Stadion & lapangan olahraga",
+    "Kanopi, carport & area publik",
+    "Plaza, food court & amphitheater",
+    "Atap tarik bentang besar & kecil",
   ],
-  "viber-semen-decorative": [
+  fasad: [
     "Fasad & dinding eksterior",
     "Partisi & plafon",
     "Dekorasi interior & eksterior",
     "Lisplang & elemen dekoratif",
-  ],
-  "waterproofing-system": [
-    "Atap dak beton",
-    "Basement & ground tank",
-    "Kamar mandi & area basah",
-    "Talang & roof garden",
-  ],
-  "protection-solution": [
-    "Proteksi permukaan beton",
-    "Perlindungan struktur baja",
-    "Area dengan beban & gesekan tinggi",
-    "Finishing tahan lama",
   ],
 };
 
@@ -189,7 +177,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     </span>
                   </div>
                   <p className="mt-2 text-[12px] text-white/40">
-                    *Harga indikatif, final menyesuaikan volume & spesifikasi.
+                    {product.priceNote ||
+                      "*Harga indikatif, final menyesuaikan volume & spesifikasi."}
                   </p>
                 </div>
 
@@ -347,6 +336,40 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </div>
           </div>
         </section>
+
+        {/* ── Merek pendukung (membrane / atap) ── */}
+        {product.supportingBrands && product.supportingBrands.length > 0 ? (
+          <section className="py-20 lg:py-24 bg-bg-dark text-white">
+            <div className="max-w-container mx-auto px-8">
+              <div className="max-w-[640px]">
+                <span
+                  className="text-[11px] uppercase tracking-[0.16em] text-gold-light"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
+                  Merek Pendukung
+                </span>
+                <h2 className="mt-4 text-[32px] lg:text-[40px] font-bold leading-[1.1] tracking-[-0.02em]">
+                  Material membrane berkualitas.
+                </h2>
+                <p className="mt-4 text-[15px] leading-relaxed text-white/65">
+                  Merek membrane bersifat pendukung — fokus kami pada engineering,
+                  fabrikasi, dan aplikasi yang presisi. Kami memakai membrane dari
+                  produsen terpercaya berikut sesuai kebutuhan & budget proyek.
+                </p>
+              </div>
+              <div className="mt-10 grid gap-px sm:grid-cols-3" style={{ background: "rgba(255,255,255,0.08)" }}>
+                {product.supportingBrands.map((b) => (
+                  <article key={b.name} className="bg-bg-dark px-6 py-7">
+                    <h3 className="text-[20px] font-bold tracking-[-0.01em] text-white">
+                      {b.name}
+                    </h3>
+                    <p className="mt-1.5 text-[13px] text-white/55">{b.origin}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* ── Diptych 3 · Kenapa Specsa (text ‖ CTA proof) ── */}
         <section className="py-20 lg:py-24 bg-bg-base">

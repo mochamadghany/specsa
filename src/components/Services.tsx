@@ -6,28 +6,38 @@ import Image from "next/image";
 const services = [
   {
     num: "01",
-    title: "Penyediaan Material Proyek",
-    desc: "Supply material untuk proyek kontraktor & developer — sesuai spek, sesuai jadwal, sesuai budget.",
+    title: "Konsultasi Gratis",
+    desc: "Diskusi kebutuhan, design, dan rekomendasi solusi atap & fasad bersama tim teknis — tanpa biaya.",
   },
   {
     num: "02",
-    title: "Pengadaan Perusahaan & Instansi",
-    desc: "Pengadaan B2B untuk korporasi, instansi pemerintah, dan project owner — lengkap dengan dokumentasi.",
+    title: "Material Original & Bergaransi",
+    desc: "Jaminan material membrane original dari produsen terpercaya, lengkap dengan garansi.",
   },
   {
     num: "03",
-    title: "Konsultasi Produk",
-    desc: "Rekomendasi material yang tepat dari tim teknis — sesuai aplikasi, beban, dan kondisi lapangan.",
+    title: "Aplikasi Bergaransi",
+    desc: "Pemasangan bergaransi, didukung perhitungan serta software membrane dan software perhitungan baja.",
   },
   {
     num: "04",
-    title: "Pengiriman ke Lokasi",
-    desc: "Distribusi terjadwal ke seluruh Jabodetabek — dari toko, gudang proyek, hingga lokasi kerja.",
+    title: "Shop Drawing Gratis",
+    desc: "Dukungan gambar kerja (shop drawing) untuk memastikan fabrikasi & pemasangan presisi.",
   },
   {
     num: "05",
-    title: "Dukungan Skala Kecil – Besar",
-    desc: "Mulai dari renovasi toko, kanopi rumah, hingga proyek high-rise & infrastruktur — semua kami tangani.",
+    title: "Laporan Perhitungan Struktur",
+    desc: "Dukungan layanan perhitungan dan laporan struktur untuk keamanan dan kepatuhan proyek.",
+  },
+  {
+    num: "06",
+    title: "Workshop & Alat Bantu Membrane",
+    desc: "Dukungan alat bantu pekerjaan membrane di workshop untuk hasil fabrikasi yang konsisten.",
+  },
+  {
+    num: "07",
+    title: "Melayani Seluruh Indonesia",
+    desc: "Project atap membrane & fasad ditangani di seluruh wilayah Indonesia.",
   },
 ];
 
@@ -69,14 +79,14 @@ export default function Services() {
           {/* Left */}
           <div>
             <div className="reveal">
-              <span className="label">03 — Cara Kami Bekerja</span>
+              <span className="label">03 — Layanan Teknis</span>
               <h2 className="h-display mt-4 mb-6">
-                Pengadaan yang Mudah, Cepat, dan Transparan.
+                Didampingi dari Konsultasi sampai Aplikasi.
               </h2>
               <p className="text-text-muted text-base leading-relaxed max-w-[60ch]">
-                Dari konsultasi produk hingga material tiba di lokasi — kami
-                dampingi setiap langkahnya. Cocok untuk kontraktor, developer,
-                hingga toko ritel.
+                Bukan sekadar supply material — kami dampingi engineering, shop
+                drawing, fabrikasi workshop, hingga pemasangan bergaransi untuk
+                proyek atap membrane & fasad di seluruh Indonesia.
               </p>
             </div>
 
