@@ -4,6 +4,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getProducts } from "@/lib/products-db";
+import { groupByCategory } from "@/lib/products";
 import { getRandomHeroImage } from "@/lib/hero-images";
 import type { DetailPageContent } from "@/lib/site-content";
 
@@ -33,6 +34,7 @@ export default async function DetailPage({ page }: DetailPageProps) {
   const CtaTag = isExternal ? "a" : Link;
   const heroImage = getRandomHeroImage();
   const products = await getProducts();
+  const productCategories = groupByCategory(products);
 
   return (
     <>
@@ -136,38 +138,72 @@ export default async function DetailPage({ page }: DetailPageProps) {
                   Minta Penawaran <ArrowIcon />
                 </Link>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {products.map((product) => (
-                  <article
-                    key={product.id}
-                    className="rounded-[10px] overflow-hidden bg-card-bg border shadow-sm"
+
+              {/* Category quick filter */}
+              <div className="mb-10 flex flex-wrap gap-2">
+                {productCategories.map((cat) => (
+                  <a
+                    key={cat.slug}
+                    href={`#kategori-${cat.slug}`}
+                    className="rounded-full border px-4 py-2 text-[13px] font-medium text-text-dark transition-colors hover:border-gold hover:text-gold"
                     style={{ borderColor: "var(--border)" }}
                   >
-                    <div className="relative aspect-[4/3] bg-bg-soft">
-                      <Image
-                        src={product.img}
-                        alt={product.alt}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                    </div>
-                    <div className="p-6">
-                      <span
-                        className="text-[10px] uppercase tracking-[0.1em] text-gold"
-                        style={{ fontFamily: "var(--font-mono)" }}
-                      >
-                        {product.badge}
+                    {cat.name}
+                  </a>
+                ))}
+              </div>
+
+              <div className="grid gap-14">
+                {productCategories.map((cat) => (
+                  <div key={cat.slug} id={`kategori-${cat.slug}`} className="scroll-mt-28">
+                    <div className="mb-6 flex items-center gap-4">
+                      <h3 className="text-[24px] font-bold tracking-[-0.01em]">
+                        {cat.name}
+                      </h3>
+                      <span className="h-px flex-1 bg-[var(--border)]" />
+                      <span className="text-[12px] text-text-muted">
+                        {cat.products.length} produk
                       </span>
-                      <h3 className="mt-2 text-[20px] font-bold">{product.name}</h3>
-                      <p className="mt-2 text-[13px] italic text-text-muted">
-                        {product.brand}
-                      </p>
-                      <p className="mt-3 text-sm leading-relaxed text-text-muted">
-                        {product.desc}
-                      </p>
                     </div>
-                  </article>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {cat.products.map((product) => (
+                        <Link
+                          key={product.id}
+                          href={`/produk/${product.id}`}
+                          className="group rounded-[10px] overflow-hidden bg-card-bg border shadow-sm transition-all hover:-translate-y-1 hover:border-gold hover:shadow-md"
+                          style={{ borderColor: "var(--border)" }}
+                        >
+                          <div className="relative aspect-[4/3] bg-bg-soft overflow-hidden">
+                            <Image
+                              src={product.img}
+                              alt={product.alt}
+                              fill
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                              sizes="(max-width: 768px) 100vw, 33vw"
+                            />
+                          </div>
+                          <div className="p-6">
+                            <span
+                              className="text-[10px] uppercase tracking-[0.1em] text-gold"
+                              style={{ fontFamily: "var(--font-mono)" }}
+                            >
+                              {product.badge}
+                            </span>
+                            <h4 className="mt-2 text-[20px] font-bold">{product.name}</h4>
+                            <p className="mt-2 text-[13px] italic text-text-muted">
+                              {product.brand}
+                            </p>
+                            <p className="mt-3 text-sm leading-relaxed text-text-muted line-clamp-2">
+                              {product.desc}
+                            </p>
+                            <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold">
+                              Lihat detail & harga <ArrowIcon />
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

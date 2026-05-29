@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { staticProducts, type Product } from "@/lib/products";
+import { staticProducts, groupByCategory, type Product } from "@/lib/products";
 
 const links = [
   { href: "/tentang", label: "Tentang" },
@@ -28,21 +28,42 @@ function ChevronDown() {
   );
 }
 
+function ChevronRight() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <polyline points="9 6 15 12 9 18" />
+    </svg>
+  );
+}
+
 export default function Navbar({ products = staticProducts }: { products?: Product[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+  const [openMobileCat, setOpenMobileCat] = useState<string | null>(null);
+
+  const categories = useMemo(() => groupByCategory(products), [products]);
 
   useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 10);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const close = () => setMobileOpen(false);
+  const close = () => {
+    setMobileOpen(false);
+    setMobileProductsOpen(false);
+    setOpenMobileCat(null);
+  };
 
   return (
     <>
@@ -77,7 +98,7 @@ export default function Navbar({ products = staticProducts }: { products?: Produ
 
           <ul className="hidden lg:flex gap-7 items-center">
             {links.map((l) => (
-              <li key={l.href} className={l.hasProducts ? "relative group" : ""}>
+              <li key={l.href} className={l.hasProducts ? "relative group/produk" : ""}>
                 <a
                   href={l.href}
                   className="text-sm text-text-dark relative py-1.5 transition-colors duration-200 hover:text-gold group/nav inline-flex items-center gap-1.5"
@@ -86,28 +107,62 @@ export default function Navbar({ products = staticProducts }: { products?: Produ
                   {l.hasProducts ? <ChevronDown /> : null}
                   <span className="absolute left-0 bottom-0 w-0 h-px bg-gold transition-all duration-[250ms] group-hover/nav:w-full" />
                 </a>
+
                 {l.hasProducts ? (
-                  <div className="invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 focus-within:visible focus-within:opacity-100 focus-within:translate-y-0 absolute left-1/2 top-full w-[280px] -translate-x-1/2 pt-4 transition-all duration-200">
-                    <div className="rounded-[8px] border bg-white p-2 shadow-lg" style={{ borderColor: "var(--border)" }}>
+                  <div className="invisible opacity-0 translate-y-2 group-hover/produk:visible group-hover/produk:opacity-100 group-hover/produk:translate-y-0 focus-within:visible focus-within:opacity-100 focus-within:translate-y-0 absolute left-1/2 top-full w-[290px] -translate-x-1/2 pt-4 transition-all duration-200">
+                    <div
+                      className="rounded-[10px] border bg-white p-2 shadow-xl"
+                      style={{ borderColor: "var(--border)" }}
+                    >
                       <a
                         href="/produk"
                         className="block rounded-md px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-gold hover:bg-bg-soft"
                       >
                         Semua Produk
                       </a>
-                      {products.map((product) => (
-                        <a
-                          key={product.id}
-                          href={`/produk#product-${product.id}`}
-                          className="block rounded-md px-3 py-2.5 transition-colors hover:bg-bg-soft"
-                        >
-                          <span className="block text-[13px] font-semibold text-text-dark">
-                            {product.name}
-                          </span>
-                          <span className="block text-[11px] text-text-muted">
-                            {product.badge}
-                          </span>
-                        </a>
+
+                      {categories.map((cat) => (
+                        <div key={cat.slug} className="relative group/cat">
+                          <a
+                            href={`/produk#kategori-${cat.slug}`}
+                            className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-bg-soft group-hover/cat:bg-bg-soft"
+                          >
+                            <span>
+                              <span className="block text-[13px] font-semibold text-text-dark">
+                                {cat.name}
+                              </span>
+                              <span className="block text-[11px] text-text-muted">
+                                {cat.products.length} produk
+                              </span>
+                            </span>
+                            <span className="text-text-muted">
+                              <ChevronRight />
+                            </span>
+                          </a>
+
+                          {/* Sub-sub menu: products within the category */}
+                          <div className="invisible opacity-0 group-hover/cat:visible group-hover/cat:opacity-100 absolute left-full top-0 w-[260px] pl-2 transition-all duration-200">
+                            <div
+                              className="rounded-[10px] border bg-white p-2 shadow-xl"
+                              style={{ borderColor: "var(--border)" }}
+                            >
+                              {cat.products.map((product) => (
+                                <a
+                                  key={product.id}
+                                  href={`/produk/${product.id}`}
+                                  className="block rounded-md px-3 py-2.5 transition-colors hover:bg-bg-soft"
+                                >
+                                  <span className="block text-[13px] font-semibold text-text-dark">
+                                    {product.name}
+                                  </span>
+                                  <span className="block text-[11px] text-text-muted">
+                                    {product.brand || product.badge}
+                                  </span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -180,33 +235,83 @@ export default function Navbar({ products = staticProducts }: { products?: Produ
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
-              {links.map((l) => (
-                <div key={l.href}>
+
+              {links.map((l) =>
+                l.hasProducts ? (
+                  <div key={l.href}>
+                    <button
+                      onClick={() => setMobileProductsOpen((v) => !v)}
+                      className="w-full py-3 text-[15px] font-medium text-text-dark border-b transition-colors hover:text-gold flex items-center justify-between"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      {l.label}
+                      <span
+                        className={`transition-transform ${mobileProductsOpen ? "rotate-180" : ""}`}
+                      >
+                        <ChevronDown />
+                      </span>
+                    </button>
+
+                    {mobileProductsOpen ? (
+                      <div className="py-1 pl-2">
+                        <a
+                          href="/produk"
+                          onClick={close}
+                          className="block py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-gold"
+                        >
+                          Semua Produk
+                        </a>
+
+                        {categories.map((cat) => {
+                          const open = openMobileCat === cat.slug;
+                          return (
+                            <div key={cat.slug}>
+                              <button
+                                onClick={() =>
+                                  setOpenMobileCat(open ? null : cat.slug)
+                                }
+                                className="w-full py-2 text-[13px] font-semibold text-text-dark flex items-center justify-between"
+                              >
+                                {cat.name}
+                                <span
+                                  className={`transition-transform ${open ? "rotate-180" : ""}`}
+                                >
+                                  <ChevronDown />
+                                </span>
+                              </button>
+                              {open ? (
+                                <div className="pb-2 pl-3">
+                                  {cat.products.map((product) => (
+                                    <a
+                                      key={product.id}
+                                      href={`/produk/${product.id}`}
+                                      onClick={close}
+                                      className="block py-2 text-[13px] text-text-muted hover:text-gold"
+                                    >
+                                      {product.name}
+                                    </a>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
                   <a
+                    key={l.href}
                     href={l.href}
                     onClick={close}
                     className="py-3 text-[15px] font-medium text-text-dark border-b transition-colors hover:text-gold flex items-center justify-between"
                     style={{ borderColor: "var(--border)" }}
                   >
                     {l.label}
-                    {l.hasProducts ? <ChevronDown /> : null}
                   </a>
-                  {l.hasProducts ? (
-                    <div className="py-2 pl-3">
-                      {products.map((product) => (
-                        <a
-                          key={product.id}
-                          href={`/produk#product-${product.id}`}
-                          onClick={close}
-                          className="block py-2 text-[13px] text-text-muted hover:text-gold"
-                        >
-                          {product.name}
-                        </a>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ))}
+                )
+              )}
+
               <a
                 href="/kontak"
                 onClick={close}

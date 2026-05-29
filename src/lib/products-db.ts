@@ -17,6 +17,8 @@ type ProductRow = RowDataPacket & {
   waste_factor: string;
   calc_label: string | null;
   has_cnc_option: number;
+  category_slug: string | null;
+  category_name: string | null;
 };
 
 export async function getProducts(): Promise<Product[]> {
@@ -25,11 +27,13 @@ export async function getProducts(): Promise<Product[]> {
     const [rows] = await db.query<ProductRow[]>(
       `SELECT p.slug, p.name, p.badge, p.brand, p.short_description,
         m.file_url, m.alt_text, p.unit, p.coverage, p.price_min, p.price_max,
-        p.waste_factor, p.calc_label, p.has_cnc_option
+        p.waste_factor, p.calc_label, p.has_cnc_option,
+        c.slug AS category_slug, c.name AS category_name
        FROM products p
        LEFT JOIN media_assets m ON m.id = p.main_media_id
+       LEFT JOIN product_categories c ON c.id = p.category_id
        WHERE p.is_published = 1
-       ORDER BY p.sort_order, p.id`
+       ORDER BY c.sort_order, p.sort_order, p.id`
     );
 
     if (!rows.length) return staticProducts;
@@ -49,6 +53,8 @@ export async function getProducts(): Promise<Product[]> {
       wasteFactor: Number(row.waste_factor || 0),
       calcLabel: row.calc_label || "m2 area proyek",
       cnc: Boolean(row.has_cnc_option),
+      categorySlug: row.category_slug || "lainnya",
+      categoryName: row.category_name || "Produk Lainnya",
     }));
   } catch {
     return staticProducts;
