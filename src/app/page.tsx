@@ -20,9 +20,8 @@ export const dynamic = "force-dynamic";
 export function generateMetadata(): Metadata {
   const site = getSiteContent().site;
   return {
-    title: `${site.name} - Supplier Material Bangunan Tangerang Selatan`,
     description:
-      "Supplier material bangunan untuk kontraktor, developer, industri, dan retail di Jabodetabek. GRC, Conwood, Bitmix, Tensile Membrane, Wallspan, Tegola, dan Gerfloor.",
+      "Supplier material bangunan untuk kontraktor, developer, industri, dan retail di Jabodetabek. Tensile membrane, GRC & viber semen, waterproofing, dan protection solution dengan harga kompetitif & konsultasi teknis gratis.",
     keywords:
       "supplier material bangunan, GRC board, conwood, waterproofing bitmix, tensile membrane, wallspan GKD, genteng bitumen tegola, vinyl gerfloor, kontraktor tangerang, jabodetabek",
     alternates: {

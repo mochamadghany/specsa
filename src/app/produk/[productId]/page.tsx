@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!product) return {};
 
   return {
-    title: `${product.name} - Harga & Spesifikasi | Specsa Solusi Pratama`,
+    title: `${product.name} - Harga & Spesifikasi`,
     description: product.desc,
     keywords: `${product.name}, ${product.brand}, ${product.badge}, harga ${product.name}, supplier material bangunan`,
     openGraph: {

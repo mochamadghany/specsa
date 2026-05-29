@@ -18,19 +18,74 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PT. Specsa Solusi Pratama - Supplier Material Bangunan Tangerang Selatan",
+  metadataBase: new URL("https://specsa.id"),
+  title: {
+    default: "Supplier Material Bangunan Jabodetabek | Specsa Solusi Pratama",
+    template: "%s | Specsa Solusi Pratama",
+  },
   description:
-    "PT. Specsa Solusi Pratama - supplier material bangunan untuk kontraktor, developer, industri & retail di Jabodetabek. GRC, Conwood, Bitmix, Tensile Membrane, Wallspan GKD, Tegola, Gerfloor.",
-  keywords:
-    "supplier material bangunan, GRC board, conwood, waterproofing bitmix, tensile membrane, wallspan GKD, genteng bitumen tegola, vinyl gerfloor, kontraktor tangerang, jabodetabek",
-  authors: [{ name: "PT. Specsa Solusi Pratama" }],
+    "Specsa Solusi Pratama — supplier material bangunan terpercaya di Jabodetabek untuk kontraktor, developer, industri & retail. Membrane tensile, GRC & viber semen, waterproofing, dan protection solution. Harga kompetitif, konsultasi teknis gratis, kirim sesuai jadwal proyek.",
+  keywords: [
+    "supplier material bangunan",
+    "supplier material bangunan jabodetabek",
+    "distributor material konstruksi",
+    "tensile membrane",
+    "GRC board",
+    "conwood",
+    "viber semen",
+    "waterproofing",
+    "protection solution",
+    "harga material bangunan",
+    "kontraktor tangerang selatan",
+    "material proyek",
+  ],
+  applicationName: "Specsa Solusi Pratama",
+  authors: [{ name: "PT. Specsa Solusi Pratama", url: "https://specsa.id" }],
+  creator: "PT. Specsa Solusi Pratama",
+  publisher: "PT. Specsa Solusi Pratama",
+  category: "Building Materials",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
-    title: "PT. Specsa Solusi Pratama - Trusted Building Material Partner",
+    title: "Supplier Material Bangunan Jabodetabek | Specsa Solusi Pratama",
     description:
-      "Material berkualitas untuk proyek konstruksi, developer, dan industri. Kompetitif, responsif, on-schedule.",
+      "Material bangunan berkualitas untuk proyek konstruksi, developer, dan industri di Jabodetabek. Kompetitif, responsif, on-schedule.",
+    url: "https://specsa.id",
+    siteName: "PT. Specsa Solusi Pratama",
     type: "website",
     locale: "id_ID",
-    url: "https://specsa.id",
+    images: [
+      {
+        url: "/images/logo-specsa.png",
+        width: 991,
+        height: 363,
+        alt: "Specsa Solusi Pratama",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Supplier Material Bangunan Jabodetabek | Specsa Solusi Pratama",
+    description:
+      "Supplier material bangunan terpercaya di Jabodetabek: tensile membrane, GRC, waterproofing & protection solution.",
+    images: ["/images/logo-specsa.png"],
+  },
+  formatDetection: {
+    telephone: true,
+    address: true,
+    email: true,
   },
 };
 

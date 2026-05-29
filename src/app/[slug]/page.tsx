@@ -20,7 +20,7 @@ export function generateMetadata({ params }: PageProps): Metadata {
   if (!page) return {};
 
   return {
-    title: page.seo.title,
+    title: { absolute: page.seo.title },
     description: page.seo.description,
     keywords: page.seo.keywords,
     alternates: {
