@@ -129,7 +129,7 @@ export default async function DetailPage({ page }: DetailPageProps) {
         {page.slug === "produk" ? (
           <section className="py-20 bg-bg-soft">
             <div className="max-w-container mx-auto px-8">
-              <div className="flex flex-wrap items-end justify-between gap-8 mb-10">
+              <div className="flex flex-wrap items-end justify-between gap-8 mb-12">
                 <div>
                   <span className="label">Produk Detail</span>
                   <h2 className="h-display mt-4">Daftar Produk yang Dijual.</h2>
@@ -139,72 +139,109 @@ export default async function DetailPage({ page }: DetailPageProps) {
                 </Link>
               </div>
 
-              {/* Category quick filter */}
-              <div className="mb-10 flex flex-wrap gap-2">
-                {productCategories.map((cat) => (
-                  <a
-                    key={cat.slug}
-                    href={`#kategori-${cat.slug}`}
-                    className="rounded-full border px-4 py-2 text-[13px] font-medium text-text-dark transition-colors hover:border-gold hover:text-gold"
-                    style={{ borderColor: "var(--border)" }}
+              <div className="grid lg:grid-cols-[230px_1fr] gap-x-14 gap-y-10 items-start">
+                {/* Sticky category rail */}
+                <aside className="lg:sticky lg:top-28">
+                  <span
+                    className="text-[10px] uppercase tracking-[0.16em] text-text-muted"
+                    style={{ fontFamily: "var(--font-mono)" }}
                   >
-                    {cat.name}
-                  </a>
-                ))}
-              </div>
-
-              <div className="grid gap-14">
-                {productCategories.map((cat) => (
-                  <div key={cat.slug} id={`kategori-${cat.slug}`} className="scroll-mt-28">
-                    <div className="mb-6 flex items-center gap-4">
-                      <h3 className="text-[24px] font-bold tracking-[-0.01em]">
-                        {cat.name}
-                      </h3>
-                      <span className="h-px flex-1 bg-[var(--border)]" />
-                      <span className="text-[12px] text-text-muted">
-                        {cat.products.length} produk
-                      </span>
-                    </div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {cat.products.map((product) => (
-                        <Link
-                          key={product.id}
-                          href={`/produk/${product.id}`}
-                          className="group rounded-[10px] overflow-hidden bg-card-bg border shadow-sm transition-all hover:-translate-y-1 hover:border-gold hover:shadow-md"
-                          style={{ borderColor: "var(--border)" }}
+                    Kategori
+                  </span>
+                  <ul className="mt-4" style={{ borderTop: "1px solid var(--border)" }}>
+                    {productCategories.map((cat, i) => (
+                      <li
+                        key={cat.slug}
+                        style={{ borderBottom: "1px solid var(--border)" }}
+                      >
+                        <a
+                          href={`#kategori-${cat.slug}`}
+                          className="group flex items-baseline gap-3 py-3 transition-colors hover:text-gold"
                         >
-                          <div className="relative aspect-[4/3] bg-bg-soft overflow-hidden">
-                            <Image
-                              src={product.img}
-                              alt={product.alt}
-                              fill
-                              className="object-cover transition-transform duration-500 group-hover:scale-105"
-                              sizes="(max-width: 768px) 100vw, 33vw"
-                            />
-                          </div>
-                          <div className="p-6">
-                            <span
-                              className="text-[10px] uppercase tracking-[0.1em] text-gold"
-                              style={{ fontFamily: "var(--font-mono)" }}
-                            >
-                              {product.badge}
-                            </span>
-                            <h4 className="mt-2 text-[20px] font-bold">{product.name}</h4>
-                            <p className="mt-2 text-[13px] italic text-text-muted">
-                              {product.brand}
-                            </p>
-                            <p className="mt-3 text-sm leading-relaxed text-text-muted line-clamp-2">
-                              {product.desc}
-                            </p>
-                            <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold">
-                              Lihat detail & harga <ArrowIcon />
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
+                          <span
+                            className="text-[11px] text-gold tabular-nums"
+                            style={{ fontFamily: "var(--font-mono)" }}
+                          >
+                            0{i + 1}
+                          </span>
+                          <span className="flex-1 text-[14px] font-medium text-text-dark group-hover:text-gold">
+                            {cat.name}
+                          </span>
+                          <span className="text-[11px] text-text-muted">
+                            {cat.products.length}
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </aside>
+
+                {/* Catalogue rows */}
+                <div className="grid gap-16">
+                  {productCategories.map((cat) => (
+                    <div
+                      key={cat.slug}
+                      id={`kategori-${cat.slug}`}
+                      className="scroll-mt-28"
+                    >
+                      <div
+                        className="mb-7 flex items-center gap-4 pb-3"
+                        style={{ borderBottom: "1px solid var(--border)" }}
+                      >
+                        <h3 className="text-[24px] font-bold tracking-[-0.01em]">
+                          {cat.name}
+                        </h3>
+                        <span
+                          className="text-[11px] text-text-muted"
+                          style={{ fontFamily: "var(--font-mono)" }}
+                        >
+                          {cat.products.length} produk
+                        </span>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-5">
+                        {cat.products.map((product) => (
+                          <Link
+                            key={product.id}
+                            href={`/produk/${product.id}`}
+                            className="group flex gap-5 rounded-[12px] bg-card-bg p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
+                            style={{ border: "1px solid var(--border)" }}
+                          >
+                            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[8px] bg-bg-soft">
+                              <Image
+                                src={product.img}
+                                alt={product.alt}
+                                fill
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                sizes="112px"
+                              />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span
+                                className="text-[10px] uppercase tracking-[0.1em] text-gold"
+                                style={{ fontFamily: "var(--font-mono)" }}
+                              >
+                                {product.badge}
+                              </span>
+                              <h4 className="mt-1 text-[18px] font-bold tracking-[-0.01em] truncate">
+                                {product.name}
+                              </h4>
+                              <p className="mt-2 text-[13px] font-semibold text-text-dark">
+                                Rp {product.priceMin.toLocaleString("id-ID")}
+                                <span className="text-text-muted font-normal">
+                                  {" – "}
+                                  {product.priceMax.toLocaleString("id-ID")} / {product.unit}
+                                </span>
+                              </p>
+                              <span className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold opacity-0 transition-opacity group-hover:opacity-100">
+                                Lihat detail & harga <ArrowIcon />
+                              </span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </section>

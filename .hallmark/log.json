@@ -1,0 +1,15 @@
+[
+  {
+    "date": "2026-05-29",
+    "verb": "redesign",
+    "scope": "produk detail + listing",
+    "files": [
+      "src/app/produk/[productId]/page.tsx",
+      "src/components/DetailPage.tsx (page.slug === 'produk' section)"
+    ],
+    "macrostructure": "Split Studio",
+    "genre": "editorial",
+    "theme": "brand-locked (warm-luxury: cream/gold/near-black, Plus Jakarta Sans + mono)",
+    "preserved": ["palette tokens", "fonts", "routes", "copy intent", "IA", "ProductCalculator", "sticky mobile CTA", "data fetching"]
+  }
+]

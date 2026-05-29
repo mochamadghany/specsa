@@ -113,27 +113,23 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   const fmt = (value: number) => `Rp ${value.toLocaleString("id-ID")}`;
 
+  const specs: [string, string][] = [
+    ["Brand", product.brand || "-"],
+    ["Coverage", `${product.coverage} m² / ${product.unit}`],
+    ["Satuan jual", product.unit],
+    ["Waste standar", `${Math.round(product.wasteFactor * 100)}%`],
+  ];
+
   return (
     <>
       <Topbar />
       <Navbar products={products} />
-      <main className="pb-20 lg:pb-0">
-        {/* Hero */}
-        <section className="relative overflow-hidden bg-bg-dark text-white">
-          <div className="absolute inset-0">
-            <Image
-              src={product.img}
-              alt={product.alt}
-              fill
-              priority
-              className="object-cover opacity-42"
-              sizes="100vw"
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(14,12,9,0.9),rgba(14,12,9,0.68)_48%,rgba(14,12,9,0.28))]" />
-          </div>
-          <div className="relative max-w-container mx-auto px-8 py-16 lg:py-24">
+      <main className="pb-24 lg:pb-0">
+        {/* ── Split hero: positioning + price on the text half, product + calculator on the proof half ── */}
+        <section className="bg-bg-dark text-white">
+          <div className="max-w-container mx-auto px-8 pt-10 pb-16 lg:pt-14 lg:pb-24">
             <nav
-              className="flex flex-wrap items-center gap-2 text-[12px] uppercase tracking-[0.1em] text-white/55"
+              className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-white/45"
               style={{ fontFamily: "var(--font-mono)" }}
             >
               <Link href="/produk" className="hover:text-gold-light">
@@ -151,37 +147,50 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   <span aria-hidden="true">/</span>
                 </>
               ) : null}
-              <span className="text-white/80">{product.name}</span>
+              <span className="text-white/75">{product.name}</span>
             </nav>
 
-            <div className="mt-8 grid lg:grid-cols-[minmax(0,1fr)_420px] gap-10 items-start">
-              <div className="max-w-[720px]">
-                <span className="inline-flex rounded-full bg-gold/20 px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-gold-light">
+            <div className="mt-10 grid lg:grid-cols-2 gap-x-16 gap-y-12 items-start">
+              {/* text half */}
+              <div className="lg:pt-6">
+                <span
+                  className="text-[11px] uppercase tracking-[0.16em] text-gold-light"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
                   {product.badge}
                 </span>
-                <h1 className="mt-5 text-[40px] lg:text-[68px] font-bold leading-[1.03] tracking-[-0.025em]">
+                <h1 className="mt-4 text-[44px] lg:text-[72px] font-bold leading-[1.0] tracking-[-0.03em]">
                   {product.name}
                 </h1>
                 {product.brand ? (
-                  <p className="mt-3 italic text-white/68">{product.brand}</p>
+                  <p className="mt-3 text-[15px] italic text-white/55">{product.brand}</p>
                 ) : null}
-                <p className="mt-6 max-w-[620px] text-[17px] leading-[1.7] text-white/78">
+                <p className="mt-7 max-w-[460px] text-[16px] leading-[1.75] text-white/72">
                   {product.desc}
                 </p>
 
-                <div className="mt-7 inline-flex flex-col gap-1 rounded-[12px] border border-gold/25 bg-black/25 px-5 py-4">
-                  <span className="text-[11px] uppercase tracking-[0.12em] text-white/55">
+                <div className="mt-9 border-t border-white/12 pt-6">
+                  <span
+                    className="text-[10px] uppercase tracking-[0.18em] text-white/45"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
                     Estimasi Harga
                   </span>
-                  <span className="text-[26px] font-bold text-gold-light leading-none">
-                    {fmt(product.priceMin)} – {fmt(product.priceMax)}
-                    <span className="ml-1 text-[14px] font-normal text-white/60">
+                  <div className="mt-2 flex items-end gap-2">
+                    <span className="text-[32px] lg:text-[38px] font-bold text-gold-light leading-none tracking-[-0.02em]">
+                      {fmt(product.priceMin)}
+                    </span>
+                    <span className="text-white/40 pb-1">—</span>
+                    <span className="text-[32px] lg:text-[38px] font-bold text-gold-light leading-none tracking-[-0.02em]">
+                      {fmt(product.priceMax)}
+                    </span>
+                    <span className="pb-1 text-[13px] font-normal text-white/55">
                       / {product.unit}
                     </span>
-                  </span>
-                  <span className="mt-1 text-[12px] text-white/50">
+                  </div>
+                  <p className="mt-2 text-[12px] text-white/40">
                     *Harga indikatif, final menyesuaikan volume & spesifikasi.
-                  </span>
+                  </p>
                 </div>
 
                 <div className="mt-7 flex flex-wrap gap-3">
@@ -193,15 +202,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   >
                     Tanya & Pesan via WhatsApp <span className="arrow">→</span>
                   </a>
-                  <a
-                    href={phoneLink}
-                    className="btn border border-white/25 text-white hover:border-gold-light"
-                  >
+                  <a href={phoneLink} className="btn btn-outline">
                     Telepon Sales
                   </a>
                 </div>
 
-                <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-[13px] text-white/70">
+                <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-[13px] text-white/65">
                   {[
                     "Konsultasi teknis gratis",
                     "Pengiriman Jabodetabek",
@@ -215,51 +221,146 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 </ul>
               </div>
 
-              <ProductCalculator product={product} />
+              {/* proof half */}
+              <div className="flex flex-col gap-6">
+                <div className="relative aspect-[5/4] overflow-hidden rounded-[12px]">
+                  <Image
+                    src={product.img}
+                    alt={product.alt}
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_top,rgba(14,12,9,0.6),transparent)]" />
+                  <span
+                    className="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-white/85 backdrop-blur"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    {product.categoryName || "Produk"}
+                  </span>
+                </div>
+                <ProductCalculator product={product} />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Spec strip */}
-        <section className="py-14 bg-bg-base">
-          <div className="max-w-container mx-auto px-8">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {[
-                ["Brand", product.brand || "-"],
-                ["Coverage", `${product.coverage} m2 / ${product.unit}`],
-                ["Satuan", product.unit],
-                ["Waste Standar", `${Math.round(product.wasteFactor * 100)}%`],
-              ].map(([label, value]) => (
-                <article
-                  key={label}
-                  className="rounded-[10px] border bg-card-bg p-6 shadow-sm"
-                  style={{ borderColor: "var(--border)" }}
-                >
-                  <div className="text-[11px] uppercase tracking-[0.12em] text-text-muted">
-                    {label}
+        {/* ── Diptych 1 · Spesifikasi (text ‖ stat-proof) ── */}
+        <section className="py-20 lg:py-24 bg-bg-base">
+          <div className="max-w-container mx-auto px-8 grid lg:grid-cols-2 gap-x-16 gap-y-12 items-center">
+            <div>
+              <span className="label">Spesifikasi</span>
+              <h2 className="h-display mt-4">Detail teknis material.</h2>
+              <p className="mt-4 max-w-[460px] text-text-muted leading-relaxed">
+                Angka coverage & waste di bawah ini yang kami pakai untuk menghitung
+                estimasi kebutuhan proyek Anda secara akurat.
+              </p>
+              <dl className="mt-8">
+                {specs.map(([label, value], i) => (
+                  <div
+                    key={label}
+                    className="flex items-baseline justify-between gap-6 py-4"
+                    style={{
+                      borderTop: "1px solid var(--border)",
+                      borderBottom:
+                        i === specs.length - 1 ? "1px solid var(--border)" : undefined,
+                    }}
+                  >
+                    <dt
+                      className="text-[11px] uppercase tracking-[0.14em] text-text-muted"
+                      style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                      {label}
+                    </dt>
+                    <dd className="text-[18px] font-bold tracking-[-0.01em] text-right">
+                      {value}
+                    </dd>
                   </div>
-                  <div className="mt-2 text-[20px] font-bold leading-snug">{value}</div>
-                </article>
-              ))}
+                ))}
+              </dl>
+            </div>
+
+            <div className="rounded-[14px] bg-bg-dark text-white p-8 lg:p-10">
+              <span
+                className="text-[10px] uppercase tracking-[0.18em] text-white/45"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                Coverage per {product.unit}
+              </span>
+              <p className="mt-3 text-[52px] lg:text-[64px] font-bold leading-none tracking-[-0.03em] text-gold-light">
+                {product.coverage}
+                <span className="ml-2 text-[20px] font-normal text-white/55">m²</span>
+              </p>
+              <p className="mt-4 text-[14px] leading-relaxed text-white/65">
+                Satu {product.unit} {product.name} menutup sekitar {product.coverage} m²
+                permukaan. Hitung kebutuhan persisnya pakai kalkulator di atas, atau biar
+                tim kami yang bantu.
+              </p>
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-gold mt-7"
+              >
+                Minta Hitungan Akurat <span className="arrow">→</span>
+              </a>
             </div>
           </div>
         </section>
 
-        {/* Benefits + Applications */}
-        <section className="py-16 bg-bg-soft">
-          <div className="max-w-container mx-auto px-8 grid lg:grid-cols-[1.2fr_0.8fr] gap-12 items-start">
+        {/* ── Diptych 2 · Cocok untuk (image ‖ text, reversed) ── */}
+        <section className="py-20 lg:py-24 bg-bg-soft">
+          <div className="max-w-container mx-auto px-8 grid lg:grid-cols-2 gap-x-16 gap-y-12 items-center">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[14px] lg:order-1 order-2">
+              <Image
+                src={product.img}
+                alt={product.alt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+            <div className="lg:order-2 order-1">
+              <span className="label">Cocok Untuk</span>
+              <h2 className="h-display mt-4">Aplikasi {product.name}.</h2>
+              <p className="mt-4 max-w-[460px] text-text-muted leading-relaxed">
+                Material ini paling sering dipakai kontraktor untuk pekerjaan berikut:
+              </p>
+              <ul className="mt-7 grid sm:grid-cols-2 gap-x-8">
+                {applications.map((item, i) => (
+                  <li
+                    key={item}
+                    className="flex items-baseline gap-4 py-4"
+                    style={{ borderTop: "1px solid var(--border)" }}
+                  >
+                    <span
+                      className="text-[12px] text-gold tabular-nums"
+                      style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                      0{i + 1}
+                    </span>
+                    <span className="text-[15px] text-text-dark">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Diptych 3 · Kenapa Specsa (text ‖ CTA proof) ── */}
+        <section className="py-20 lg:py-24 bg-bg-base">
+          <div className="max-w-container mx-auto px-8 grid lg:grid-cols-2 gap-x-16 gap-y-12 items-start">
             <div>
               <span className="label">Kenapa Specsa</span>
               <h2 className="h-display mt-4">Alasan kontraktor memilih kami.</h2>
-              <div className="mt-8 grid sm:grid-cols-2 gap-5">
+              <div className="mt-8 grid gap-px" style={{ background: "var(--border)" }}>
                 {benefits.map((item) => (
-                  <article
-                    key={item.title}
-                    className="rounded-[10px] border bg-card-bg p-6 shadow-sm"
-                    style={{ borderColor: "var(--border)" }}
-                  >
-                    <h3 className="text-[17px] font-bold">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                  <article key={item.title} className="bg-bg-base py-5">
+                    <h3 className="text-[17px] font-bold tracking-[-0.01em]">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-text-muted">
                       {item.body}
                     </p>
                   </article>
@@ -267,31 +368,39 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <aside
-              className="rounded-[12px] border bg-card-bg p-7 shadow-sm lg:sticky lg:top-28"
-              style={{ borderColor: "var(--border)" }}
-            >
-              <span className="label">Cocok Untuk</span>
-              <h3 className="mt-3 text-[22px] font-bold tracking-[-0.01em]">
-                Aplikasi {product.name}
+            <aside className="rounded-[14px] bg-bg-dark text-white p-8 lg:p-10 lg:sticky lg:top-28">
+              <span
+                className="text-[10px] uppercase tracking-[0.18em] text-gold-light"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                Siap pesan?
+              </span>
+              <h3 className="mt-3 text-[26px] font-bold leading-tight tracking-[-0.02em]">
+                Tanya stok & harga {product.name} sekarang.
               </h3>
-              <ul className="mt-5 grid gap-3">
-                {applications.map((item) => (
-                  <li key={item} className="flex gap-3 text-sm text-text-dark">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn btn-gold mt-7 w-full justify-center">
-                Konsultasi Kebutuhan <span className="arrow">→</span>
-              </a>
+              <p className="mt-4 text-[14px] leading-relaxed text-white/65">
+                Balasan cepat di jam kerja. Sebutkan volume atau luas area proyek Anda,
+                tim kami bantu hitung & siapkan penawaran.
+              </p>
+              <div className="mt-7 flex flex-col gap-3">
+                <a
+                  href={waLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-gold justify-center"
+                >
+                  Chat WhatsApp <span className="arrow">→</span>
+                </a>
+                <a href={phoneLink} className="btn btn-outline justify-center">
+                  Telepon Sales
+                </a>
+              </div>
             </aside>
           </div>
         </section>
 
-        {/* Related */}
-        <section className="py-16 bg-bg-base">
+        {/* ── Related · editorial index list ── */}
+        <section className="py-20 lg:py-24 bg-bg-soft">
           <div className="max-w-container mx-auto px-8">
             <div className="flex flex-wrap items-end justify-between gap-6 mb-10">
               <div>
@@ -302,27 +411,43 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 Lihat Semua Produk <span className="arrow">→</span>
               </Link>
             </div>
-            <div className="grid md:grid-cols-3 gap-5">
+            <ul style={{ borderTop: "1px solid var(--border)" }}>
               {related.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/produk/${item.id}`}
-                  className="rounded-[10px] overflow-hidden bg-card-bg border shadow-sm transition-transform hover:-translate-y-1"
-                  style={{ borderColor: "var(--border)" }}
-                >
-                  <div className="relative aspect-[4/3]">
-                    <Image src={item.img} alt={item.alt} fill className="object-cover" />
-                  </div>
-                  <div className="p-5">
-                    <div className="text-[10px] uppercase tracking-[0.1em] text-gold">
-                      {item.badge}
+                <li key={item.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <Link
+                    href={`/produk/${item.id}`}
+                    className="group flex items-center gap-5 py-5"
+                  >
+                    <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-[8px] bg-bg-base">
+                      <Image
+                        src={item.img}
+                        alt={item.alt}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="80px"
+                      />
                     </div>
-                    <h3 className="mt-2 font-bold text-[18px]">{item.name}</h3>
-                    <p className="mt-2 text-sm text-text-muted line-clamp-2">{item.desc}</p>
-                  </div>
-                </Link>
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className="text-[10px] uppercase tracking-[0.12em] text-gold"
+                        style={{ fontFamily: "var(--font-mono)" }}
+                      >
+                        {item.badge}
+                      </div>
+                      <h3 className="mt-1 text-[18px] font-bold tracking-[-0.01em] truncate">
+                        {item.name}
+                      </h3>
+                      <p className="mt-0.5 text-[13px] text-text-muted line-clamp-1">
+                        {item.desc}
+                      </p>
+                    </div>
+                    <span className="hidden sm:inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold opacity-0 transition-opacity group-hover:opacity-100">
+                      Lihat <span aria-hidden="true">→</span>
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
       </main>
