@@ -1,5 +1,14 @@
-export default function Footer() {
+import SocialIcons from "@/components/SocialIcons";
+import { getSiteSettings, getSocialLinks } from "@/lib/settings";
+import { getProducts } from "@/lib/products-db";
+
+export default async function Footer() {
   const year = new Date().getFullYear();
+  const settings = await getSiteSettings();
+  const socialLinks = getSocialLinks(settings);
+  const products = await getProducts();
+  const telHref = `tel:+${settings.whatsapp.replace(/[^0-9]/g, "")}`;
+  const siteHost = settings.site_url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
   return (
     <footer
@@ -24,7 +33,7 @@ export default function Footer() {
                 SP
               </div>
               <div className="font-semibold text-[15px] text-white">
-                Specsa Solusi Pratama
+                {settings.site_name.replace(/^PT\.\s*/, "")}
                 <small
                   className="block text-[9px] font-normal text-white/40 tracking-[0.12em] uppercase mt-0.5"
                   style={{ fontFamily: "var(--font-mono)" }}
@@ -37,6 +46,11 @@ export default function Footer() {
               Mitra terpercaya pengadaan material bangunan untuk kontraktor,
               developer, instansi, dan retail di Jabodetabek.
             </p>
+            <SocialIcons
+              links={socialLinks}
+              className="mt-5"
+              itemClassName="w-9 h-9 items-center justify-center rounded-lg border border-white/10 text-white/60 hover:text-gold hover:border-gold"
+            />
           </div>
 
           {/* Navigasi */}
@@ -76,21 +90,13 @@ export default function Footer() {
               Produk
             </h5>
             <ul className="space-y-2.5">
-              {[
-                "GRC Board",
-                "Conwood",
-                "Waterproofing Bitmix",
-                "Tensile Membrane",
-                "Wallspan GKD",
-                "Tegola Bitumen",
-                "Vinyl Floor Gerfloor",
-              ].map((p) => (
-                <li key={p}>
+              {products.map((p) => (
+                <li key={p.id}>
                   <a
-                    href="#produk"
+                    href={`/produk#product-${p.id}`}
                     className="text-[13px] text-white/55 hover:text-gold transition-colors"
                   >
-                    {p}
+                    {p.name}
                   </a>
                 </li>
               ))}
@@ -108,27 +114,18 @@ export default function Footer() {
             <ul className="space-y-3 text-[13px] text-white/55">
               <li>
                 <a
-                  href="mailto:info@specsa.id"
+                  href={`mailto:${settings.email}`}
                   className="hover:text-gold transition-colors"
                 >
-                  info@specsa.id
+                  {settings.email}
                 </a>
               </li>
               <li>
-                <a
-                  href="tel:+6281210511526"
-                  className="hover:text-gold transition-colors"
-                >
-                  0812 105 1526
+                <a href={telHref} className="hover:text-gold transition-colors">
+                  {settings.phone}
                 </a>
               </li>
-              <li className="leading-relaxed">
-                Ruko Bintaro Terrace 2 No.7,
-                <br />
-                Jl. Sumatera, Ciputat,
-                <br />
-                Tangerang Selatan 15414
-              </li>
+              <li className="leading-relaxed">{settings.address}</li>
             </ul>
           </div>
         </div>
@@ -138,8 +135,8 @@ export default function Footer() {
           className="pt-8 flex flex-wrap justify-between items-center gap-4 text-[12px] text-white/30"
           style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <span>© {year} PT. Specsa Solusi Pratama. All rights reserved.</span>
-          <span style={{ fontFamily: "var(--font-mono)" }}>specsa.id</span>
+          <span>© {year} {settings.site_name}. All rights reserved.</span>
+          <span style={{ fontFamily: "var(--font-mono)" }}>{siteHost}</span>
         </div>
       </div>
     </footer>

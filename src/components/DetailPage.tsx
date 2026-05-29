@@ -3,7 +3,7 @@ import Link from "next/link";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { products } from "@/lib/products";
+import { getProducts } from "@/lib/products-db";
 import { getRandomHeroImage } from "@/lib/hero-images";
 import type { DetailPageContent } from "@/lib/site-content";
 
@@ -28,15 +28,16 @@ function ArrowIcon() {
   );
 }
 
-export default function DetailPage({ page }: DetailPageProps) {
+export default async function DetailPage({ page }: DetailPageProps) {
   const isExternal = page.ctaHref.startsWith("http");
   const CtaTag = isExternal ? "a" : Link;
   const heroImage = getRandomHeroImage();
+  const products = await getProducts();
 
   return (
     <>
       <Topbar />
-      <Navbar />
+      <Navbar products={products} />
       <main>
         <section className="relative overflow-hidden bg-bg-dark text-white">
           <div className="absolute inset-0">

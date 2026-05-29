@@ -505,6 +505,36 @@ export default function CmsPage() {
     setSelectedProjectId(null);
   }
 
+  function addProduct() {
+    const tempId = -Date.now();
+    const product: Product = {
+      id: tempId,
+      category_id: null,
+      slug: `produk-${Date.now()}`,
+      name: "Produk Baru",
+      badge: "",
+      brand: "",
+      short_description: "",
+      main_media_id: null,
+      unit: "m2",
+      coverage: "1",
+      price_min: "0",
+      price_max: "0",
+      waste_factor: "0.1",
+      calc_label: "m2 area proyek",
+      has_cnc_option: 0,
+      sort_order: data?.products.length || 0,
+      is_featured: 0,
+      is_published: 1,
+      meta_title: "",
+      meta_description: "",
+      meta_keywords: "",
+    };
+    updateData((draft) => ({ ...draft, products: [...draft.products, product] }));
+    setTab("products");
+    setSelectedProductId(tempId);
+  }
+
   function updateMedia(id: number, patch: Partial<Media>) {
     updateData((draft) => ({
       ...draft,
@@ -743,16 +773,86 @@ export default function CmsPage() {
           ) : null}
 
           {data && tab === "settings" ? (
-            <div className={styles.editor}>
-              <div className={styles.cardHead}>
-                <div className={styles.cardTitle}>Site Settings</div>
-                <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+            <div className={styles.stack}>
+              <div className={styles.editor}>
+                <div className={styles.cardHead}>
+                  <div className={styles.cardTitle}>Informasi Umum & Kontak</div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formGrid}>
+                    {[
+                      ["site_name", "Nama Perusahaan"],
+                      ["site_url", "URL Website"],
+                      ["phone", "Telepon"],
+                      ["whatsapp", "WhatsApp (62...)"],
+                      ["email", "Email"],
+                      ["address", "Alamat"],
+                    ].map(([key, label]) => (
+                      <TextInput key={key} label={label} value={data.settings[key] || ""} onChange={(value) => updateSettings(key, value)} full={key === "address"} />
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className={styles.cardBody}>
-                <div className={styles.formGrid}>
-                  {["site_name", "site_url", "phone", "whatsapp", "email", "address"].map((key) => (
-                    <TextInput key={key} label={key} value={data.settings[key] || ""} onChange={(value) => updateSettings(key, value)} full={key === "address"} />
-                  ))}
+
+              <div className={styles.editor}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Social Media</div>
+                    <div className={styles.muted}>Tampil di header & footer. Kosongkan URL untuk menyembunyikan ikon.</div>
+                  </div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formGrid}>
+                    {[
+                      ["social_instagram_url", "Instagram URL"],
+                      ["social_instagram_handle", "Instagram Username"],
+                      ["social_facebook_url", "Facebook URL"],
+                      ["social_facebook_handle", "Facebook Username"],
+                      ["social_tiktok_url", "TikTok URL"],
+                      ["social_tiktok_handle", "TikTok Username"],
+                      ["social_youtube_url", "YouTube URL"],
+                      ["social_youtube_handle", "YouTube Username"],
+                      ["social_linkedin_url", "LinkedIn URL"],
+                      ["social_linkedin_handle", "LinkedIn Username"],
+                    ].map(([key, label]) => (
+                      <TextInput key={key} label={label} value={data.settings[key] || ""} onChange={(value) => updateSettings(key, value)} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.editor}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Instagram Feed</div>
+                    <div className={styles.muted}>Butuh akun Instagram Business/Creator + access token (Graph API).</div>
+                  </div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formGrid}>
+                    <TextInput label="Instagram User ID" value={data.settings.instagram_user_id || ""} onChange={(value) => updateSettings("instagram_user_id", value)} />
+                    <TextInput label="Aktif? (1 = ya, 0 = tidak)" value={data.settings.instagram_feed_enabled ?? "1"} onChange={(value) => updateSettings("instagram_feed_enabled", value)} />
+                    <TextArea label="Instagram Access Token" value={data.settings.instagram_access_token || ""} onChange={(value) => updateSettings("instagram_access_token", value)} />
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.editor}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <div className={styles.cardTitle}>Facebook Feed</div>
+                    <div className={styles.muted}>Menampilkan timeline halaman Facebook secara real-time (Page Plugin).</div>
+                  </div>
+                  <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formGrid}>
+                    <TextInput label="Facebook Page URL" value={data.settings.facebook_page_url || ""} onChange={(value) => updateSettings("facebook_page_url", value)} full />
+                    <TextInput label="Aktif? (1 = ya, 0 = tidak)" value={data.settings.facebook_feed_enabled ?? "1"} onChange={(value) => updateSettings("facebook_feed_enabled", value)} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -867,11 +967,14 @@ export default function CmsPage() {
 
           {data && tab === "products" && selectedProduct ? (
             <div className={styles.stack}>
+              <div className={styles.toolbar}>
+                <button type="button" className={[styles.btn, styles.btnOutline].join(" ")} onClick={addProduct}>Tambah Product</button>
+              </div>
               <div className={styles.tableWrap}>
                 <div className={styles.cardHead}>
                   <div>
                     <div className={styles.cardTitle}>Daftar Products</div>
-                    <div className={styles.muted}>Update data produk dan hapus item yang tidak digunakan.</div>
+                    <div className={styles.muted}>Tambah produk baru, update data, atau hapus item. Produk baru tersimpan setelah klik Simpan.</div>
                   </div>
                   <SaveActions saving={saving} disabled={!data} onSave={saveDashboard} />
                 </div>
@@ -923,6 +1026,7 @@ export default function CmsPage() {
                   <div className={styles.formGrid}>
                     <TextInput label="Slug" value={selectedProduct.slug} onChange={(value) => updateProduct(selectedProduct.id, { slug: value })} />
                     <TextInput label="Name" value={selectedProduct.name} onChange={(value) => updateProduct(selectedProduct.id, { name: value })} />
+                    <TextInput label="Category ID (1-5)" type="number" value={selectedProduct.category_id ?? ""} onChange={(value) => updateProduct(selectedProduct.id, { category_id: value ? Number(value) : null })} />
                     <TextInput label="Badge" value={selectedProduct.badge} onChange={(value) => updateProduct(selectedProduct.id, { badge: value })} />
                     <TextInput label="Brand" value={selectedProduct.brand} onChange={(value) => updateProduct(selectedProduct.id, { brand: value })} />
                     <MediaSelect label="Product Image" value={selectedProduct.main_media_id} media={data.media} onChange={(value) => updateProduct(selectedProduct.id, { main_media_id: value })} />
@@ -932,6 +1036,7 @@ export default function CmsPage() {
                     <TextInput label="Price Max" type="number" value={selectedProduct.price_max} onChange={(value) => updateProduct(selectedProduct.id, { price_max: value })} />
                     <TextInput label="Waste Factor" type="number" value={selectedProduct.waste_factor} onChange={(value) => updateProduct(selectedProduct.id, { waste_factor: value })} />
                     <TextInput label="Calc Label" value={selectedProduct.calc_label} onChange={(value) => updateProduct(selectedProduct.id, { calc_label: value })} />
+                    <TextInput label="Opsi CNC (1/0)" type="number" value={selectedProduct.has_cnc_option} onChange={(value) => updateProduct(selectedProduct.id, { has_cnc_option: Number(value) ? 1 : 0 })} />
                     <TextInput label="Sort Order" type="number" value={selectedProduct.sort_order} onChange={(value) => updateProduct(selectedProduct.id, { sort_order: Number(value) })} />
                     <TextArea label="Short Description" value={selectedProduct.short_description} onChange={(value) => updateProduct(selectedProduct.id, { short_description: value })} />
                     <TextInput label="SEO Title" value={selectedProduct.meta_title} onChange={(value) => updateProduct(selectedProduct.id, { meta_title: value })} />

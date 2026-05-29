@@ -362,34 +362,68 @@ export async function PUT(request: NextRequest) {
     }
 
     for (const product of body.products || []) {
-      await conn.execute(
-        `UPDATE products
-         SET category_id = ?, slug = ?, name = ?, badge = ?, brand = ?, short_description = ?,
-             main_media_id = ?, unit = ?, coverage = ?, price_min = ?, price_max = ?,
-             waste_factor = ?, calc_label = ?, has_cnc_option = ?, sort_order = ?,
-             is_featured = ?, is_published = ?
-         WHERE id = ?`,
-        [
-          product.category_id || null,
-          product.slug,
-          product.name,
-          product.badge,
-          product.brand,
-          product.short_description,
-          product.main_media_id || null,
-          product.unit,
-          Number(product.coverage || 1),
-          Number(product.price_min || 0),
-          Number(product.price_max || 0),
-          Number(product.waste_factor || 0),
-          product.calc_label,
-          product.has_cnc_option ? 1 : 0,
-          Number(product.sort_order || 0),
-          product.is_featured ? 1 : 0,
-          product.is_published ? 1 : 0,
-          product.id,
-        ]
-      );
+      const existingId = Number(product.id);
+      const isExisting = Number.isFinite(existingId) && existingId > 0;
+      let productId = existingId;
+
+      if (isExisting) {
+        await conn.execute(
+          `UPDATE products
+           SET category_id = ?, slug = ?, name = ?, badge = ?, brand = ?, short_description = ?,
+               main_media_id = ?, unit = ?, coverage = ?, price_min = ?, price_max = ?,
+               waste_factor = ?, calc_label = ?, has_cnc_option = ?, sort_order = ?,
+               is_featured = ?, is_published = ?
+           WHERE id = ?`,
+          [
+            product.category_id || null,
+            product.slug,
+            product.name,
+            product.badge,
+            product.brand,
+            product.short_description,
+            product.main_media_id || null,
+            product.unit,
+            Number(product.coverage || 1),
+            Number(product.price_min || 0),
+            Number(product.price_max || 0),
+            Number(product.waste_factor || 0),
+            product.calc_label,
+            product.has_cnc_option ? 1 : 0,
+            Number(product.sort_order || 0),
+            product.is_featured ? 1 : 0,
+            product.is_published ? 1 : 0,
+            existingId,
+          ]
+        );
+      } else {
+        const [result] = await conn.execute<ResultSetHeader>(
+          `INSERT INTO products
+           (category_id, slug, name, badge, brand, short_description, main_media_id, unit,
+            coverage, price_min, price_max, waste_factor, calc_label, has_cnc_option,
+            sort_order, is_featured, is_published)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            product.category_id || null,
+            product.slug,
+            product.name,
+            product.badge,
+            product.brand,
+            product.short_description,
+            product.main_media_id || null,
+            product.unit,
+            Number(product.coverage || 1),
+            Number(product.price_min || 0),
+            Number(product.price_max || 0),
+            Number(product.waste_factor || 0),
+            product.calc_label,
+            product.has_cnc_option ? 1 : 0,
+            Number(product.sort_order || 0),
+            product.is_featured ? 1 : 0,
+            product.is_published ? 1 : 0,
+          ]
+        );
+        productId = result.insertId;
+      }
 
       await conn.execute(
         `INSERT INTO seo_metadata (entity_type, entity_id, canonical_path, meta_title, meta_description, meta_keywords, og_media_id)
@@ -398,7 +432,7 @@ export async function PUT(request: NextRequest) {
            meta_title = VALUES(meta_title), meta_description = VALUES(meta_description),
            meta_keywords = VALUES(meta_keywords), og_media_id = VALUES(og_media_id)`,
         [
-          product.id,
+          productId,
           `/produk#product-${product.slug}`,
           product.meta_title || product.name,
           product.meta_description || product.short_description,

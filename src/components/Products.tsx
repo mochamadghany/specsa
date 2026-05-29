@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { products } from "@/lib/products";
+import { staticProducts, type Product } from "@/lib/products";
 
 function ArrowIcon() {
   return (
@@ -20,7 +20,7 @@ function ArrowIcon() {
   );
 }
 
-export default function Products() {
+export default function Products({ products = staticProducts }: { products?: Product[] }) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {

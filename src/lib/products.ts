@@ -15,7 +15,7 @@ export type Product = {
   cnc: boolean;
 };
 
-export const products: Product[] = [
+export const staticProducts: Product[] = [
   {
     id: "grc",
     img: "/images/product-grc.png",
@@ -113,4 +113,7 @@ export const products: Product[] = [
     cnc: false,
   },
 ];
+
+// Backward-compatible static export (used as fallback when DB is unavailable).
+export const products: Product[] = staticProducts;
 

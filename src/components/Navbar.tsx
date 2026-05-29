@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { products } from "@/lib/products";
+import { staticProducts, type Product } from "@/lib/products";
 
 const links = [
   { href: "/tentang", label: "Tentang" },
@@ -28,7 +28,7 @@ function ChevronDown() {
   );
 }
 
-export default function Navbar() {
+export default function Navbar({ products = staticProducts }: { products?: Product[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 

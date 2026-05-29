@@ -6,7 +6,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCalculator from "@/components/ProductCalculator";
-import { products } from "@/lib/products";
+import { getProducts } from "@/lib/products-db";
 
 type PageProps = {
   params: {
@@ -14,7 +14,8 @@ type PageProps = {
   };
 };
 
-export function generateMetadata({ params }: PageProps): Metadata {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const products = await getProducts();
   const product = products.find((item) => item.id === params.productId);
   if (!product) return {};
 
@@ -30,7 +31,8 @@ export function generateMetadata({ params }: PageProps): Metadata {
   };
 }
 
-export default function ProductDetailPage({ params }: PageProps) {
+export default async function ProductDetailPage({ params }: PageProps) {
+  const products = await getProducts();
   const product = products.find((item) => item.id === params.productId);
   if (!product) notFound();
 
@@ -39,7 +41,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   return (
     <>
       <Topbar />
-      <Navbar />
+      <Navbar products={products} />
       <main>
         <section className="relative overflow-hidden bg-bg-dark text-white">
           <div className="absolute inset-0">

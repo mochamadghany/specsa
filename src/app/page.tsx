@@ -7,10 +7,13 @@ import Products from "@/components/Products";
 import Services from "@/components/Services";
 import Eco from "@/components/Eco";
 import Portfolio from "@/components/Portfolio";
+import SocialFeed from "@/components/SocialFeed";
 import Why from "@/components/Why";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import { getSiteContent } from "@/lib/site-content";
+import { getSiteSettings } from "@/lib/settings";
+import { getProducts } from "@/lib/products-db";
 
 export const dynamic = "force-dynamic";
 
@@ -37,19 +40,29 @@ export function generateMetadata(): Metadata {
   };
 }
 
-export default function Home() {
+export default async function Home() {
+  const settings = await getSiteSettings();
+  const products = await getProducts();
+
   return (
     <>
       <Topbar />
-      <Navbar />
+      <Navbar products={products} />
       <main>
         <Hero />
         <About />
-        <Products />
+        <Products products={products} />
         <Services />
         <Eco />
         <Portfolio />
         <Why />
+        <SocialFeed
+          instagramHandle={settings.social_instagram_handle}
+          instagramUrl={settings.social_instagram_url}
+          instagramEnabled={settings.instagram_feed_enabled !== "0"}
+          facebookPageUrl={settings.facebook_page_url}
+          facebookEnabled={settings.facebook_feed_enabled !== "0"}
+        />
         <Contact />
       </main>
       <Footer />
