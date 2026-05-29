@@ -1,3 +1,4 @@
+import Image from "next/image";
 import SocialIcons from "@/components/SocialIcons";
 import { getSiteSettings, getSocialLinks } from "@/lib/settings";
 import { getProducts } from "@/lib/products-db";
@@ -22,26 +23,13 @@ export default async function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-white font-bold text-[14px] tracking-wider"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)",
-                }}
-              >
-                SP
-              </div>
-              <div className="font-semibold text-[15px] text-white">
-                {settings.site_name.replace(/^PT\.\s*/, "")}
-                <small
-                  className="block text-[9px] font-normal text-white/40 tracking-[0.12em] uppercase mt-0.5"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                  Building Material Supplier
-                </small>
-              </div>
-            </div>
+            <Image
+              src="/images/logo-specsa-white.png"
+              alt={settings.site_name}
+              width={991}
+              height={363}
+              className="h-12 w-auto mb-5"
+            />
             <p className="text-[13px] text-white/50 leading-relaxed">
               Mitra terpercaya pengadaan material bangunan untuk kontraktor,
               developer, instansi, dan retail di Jabodetabek.

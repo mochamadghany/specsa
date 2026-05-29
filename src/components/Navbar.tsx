@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { staticProducts, groupByCategory, type Product } from "@/lib/products";
@@ -75,25 +76,15 @@ export default function Navbar({ products = staticProducts }: { products?: Produ
         style={{ borderColor: "var(--border)" }}
       >
         <div className="max-w-container mx-auto px-8 flex items-center justify-between h-[76px]">
-          <a href="/" className="flex items-center gap-3">
-            <div
-              className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-white font-bold text-[14px] tracking-wider shadow-[0_4px_12px_rgba(155,117,53,0.3)]"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)",
-              }}
-            >
-              SP
-            </div>
-            <div className="hidden sm:block font-semibold text-[15px] tracking-[-0.005em] text-text-dark">
-              Specsa Solusi Pratama
-              <small
-                className="block text-[9px] font-normal text-text-muted tracking-[0.12em] uppercase mt-0.5"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
-                Building Material Supplier
-              </small>
-            </div>
+          <a href="/" className="flex items-center" aria-label="Specsa Solusi Pratama">
+            <Image
+              src="/images/logo-specsa.png"
+              alt="Specsa Solusi Pratama"
+              width={991}
+              height={363}
+              priority
+              className="h-9 w-auto sm:h-10"
+            />
           </a>
 
           <ul className="hidden lg:flex gap-7 items-center">
